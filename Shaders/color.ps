@@ -1,0 +1,13 @@
+struct PixelInputType
+{
+    float4 position : SV_POSITION;
+    float4 color : COLOR;
+};
+
+// Runs once per pixel covered by the triangle. "color" here has already been
+// interpolated between the three vertex colours based on the pixel's
+// position - that's what produces the smooth red -> green -> blue gradient.
+float4 ColorPixelShader(PixelInputType input) : SV_TARGET
+{
+    return input.color;
+}

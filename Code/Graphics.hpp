@@ -4,6 +4,9 @@
 #include <Windows.h>
 
 #include "D3DContext.hpp"
+#include "Camera.hpp"
+#include "Model.hpp"
+#include "Shader.hpp"
 
 // Global rendering constants
 const bool FULL_SCREEN = false;
@@ -29,4 +32,7 @@ private:
 
 private:
 	D3DContext* m_direct3D;
+	Camera* m_camera;
+	Model* m_model;
+	Shader* m_colorShader;
 };

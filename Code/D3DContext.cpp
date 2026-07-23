@@ -132,7 +132,7 @@ bool D3DContext::Initialize(int width, int height, bool vsync, HWND hwnd, bool f
 	result = D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, 0, &featureLevel, 1, D3D11_SDK_VERSION, &swapchainDesc, &m_swapchain, &m_device, NULL, &m_deviceContext);
 	if (FAILED(result))
 	{
-		MessageBox(hwnd, "Swapchain.", "Error", MB_OK);
+		MessageBox(hwnd, "Failed to create Swapchain.", "Error", MB_OK);
 		return false;
 	}
 
@@ -165,7 +165,10 @@ bool D3DContext::Initialize(int width, int height, bool vsync, HWND hwnd, bool f
 	depthBufferDesc.MiscFlags = 0;
 
 	result = m_device->CreateTexture2D(&depthBufferDesc, NULL, &m_depthStencilBuffer);
-	if (FAILED(result)) { return false; }
+	if (FAILED(result))
+	{
+		return false;
+	}
 
 	// Depth stencil state are the rules how dpeth/stencil testing behaves
 	// this is like a configuration object

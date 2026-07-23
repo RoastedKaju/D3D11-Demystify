@@ -1,9 +1,14 @@
 #include "System.hpp"
+#include "Utils.hpp"
 
 System::System()
 {
 	m_input = nullptr;
 	m_graphics = nullptr;
+
+#ifdef _DEBUG
+	Utils::InitializeConsole();
+#endif
 }
 
 System::~System()
@@ -159,7 +164,7 @@ void System::InitializeWindows(int& screenWidth, int& screenHeight)
 	RegisterClassEx(&wc);
 
 	screenWidth = GetSystemMetrics(SM_CXSCREEN);
-	screenWidth = GetSystemMetrics(SM_CYSCREEN);
+	screenHeight = GetSystemMetrics(SM_CYSCREEN);
 
 	if (FULL_SCREEN)
 	{
