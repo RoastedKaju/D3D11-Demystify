@@ -1,5 +1,7 @@
 #include "System.hpp"
 
+#include <objbase.h>
+
 /**
 * The main entry point of our program, here WinMain function exists.
 * WinMain is the equivalent of "main()" for a GUI application.
@@ -9,6 +11,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pScmdline,
 {
 	System* system{nullptr};
 	bool result{false};
+
+	HRESULT hResult = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
+	if (FAILED(hResult))
+	{
+		return 1;
+	}
 
 	// Create the system Object
 	system = new System{};
@@ -28,6 +36,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pScmdline,
 	system->Shutdown();
 	delete system;
 	system = nullptr;
+
+	CoUninitialize();
 
 	return 0;
 }

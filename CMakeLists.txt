@@ -22,4 +22,4 @@ target_sources(${PROJECT_NAME} PRIVATE ${SRC_FILES})
 target_link_libraries(${PROJECT_NAME} PRIVATE d3d11 dxgi d3dcompiler)
 
 # When you hit F5 this makes the working directory where .EXE lives
-set_property(TARGET ${PROJECT_NAME} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
+set_property(TARGET ${PROJECT_NAME} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")

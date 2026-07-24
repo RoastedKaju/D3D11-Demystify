@@ -2,12 +2,15 @@
 
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
+#include <DirectXMath.h>
 
 #include "D3DContext.hpp"
 #include "Camera.hpp"
 #include "Model.hpp"
 #include "ColorShader.hpp"
 #include "TextureShader.hpp"
+#include "LightShader.hpp"
+#include "Light.hpp"
 
 // Global rendering constants
 const bool FULL_SCREEN = false;
@@ -37,4 +40,6 @@ private:
 	Model* m_model;
 	ColorShader* m_colorShader;
 	TextureShader* m_textureShader;
+	LightShader* m_lightShader;
+	Light* m_light;
 };

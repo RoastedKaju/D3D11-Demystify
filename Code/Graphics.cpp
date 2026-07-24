@@ -8,6 +8,8 @@ Graphics::Graphics()
 	m_model = 0;
 	m_colorShader = 0;
 	m_textureShader = 0;
+	m_lightShader = nullptr;
+	m_light = nullptr;
 }
 
 Graphics::~Graphics()
@@ -76,11 +78,44 @@ bool Graphics::Initialize(int width, int height, HWND hwnd)
 		return false;
 	}
 
+	m_lightShader = new LightShader{};
+	if (!m_lightShader)
+	{
+		return false;
+	}
+	result = m_lightShader->Initialize(m_direct3D->GetDevice(), hwnd);
+	if (!result)
+	{
+		MessageBox(hwnd, "Could not initialize the light shader object.", "Error", MB_OK);
+		return false;
+	}
+
+	m_light = new Light{};
+	if (!m_light)
+	{
+		return false;
+	}
+	m_light->SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
+	m_light->SetDirection(0.0f, 0.0f, 1.0f);
+
 	return true;
 }
 
 void Graphics::Shutdown()
 {
+	if (m_light)
+	{
+		delete m_light;
+		m_light = 0;
+	}
+
+	if (m_lightShader)
+	{
+		m_lightShader->Shutdown();
+		delete m_lightShader;
+		m_lightShader = 0;
+	}
+
 	if (m_textureShader)
 	{
 		m_textureShader->Shutdown();
@@ -145,10 +180,17 @@ bool Graphics::Render()
 		//	return false;
 		//}
 
-		result = m_textureShader->Render(m_direct3D->GetDeviceContext(), m_model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_model->GetTexture());
+		//result = m_textureShader->Render(m_direct3D->GetDeviceContext(), m_model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_model->GetTexture());
+		//if (!result)
+		//{
+		//	PRINT("Failed to render frame using texture shader.\n");
+		//	return false;
+		//}
+
+		const DirectX::XMFLOAT4 lightDirection = XMFLOAT4(m_light->GetDirection().x, m_light->GetDirection().y, m_light->GetDirection().z, 0.0f);
+		result = m_lightShader->Render(m_direct3D->GetDeviceContext(), m_model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_model->GetTexture(), m_light->GetDiffuseColor(), lightDirection);
 		if (!result)
 		{
-			PRINT("Failed to render frame using texture shader.\n");
 			return false;
 		}
 	}

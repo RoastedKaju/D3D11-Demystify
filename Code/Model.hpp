@@ -28,6 +28,7 @@ private:
 		XMFLOAT3 position;
 		//XMFLOAT4 color;
 		XMFLOAT2 texture;
+		XMFLOAT3 normal;
 	};
 
 	bool InitializeBuffers(ID3D11Device*);
