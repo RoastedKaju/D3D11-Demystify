@@ -1,8 +1,7 @@
-#include "Shader.hpp"
-
+#include "ColorShader.hpp"
 #include "Utils.hpp"
 
-Shader::Shader()
+ColorShader::ColorShader()
 {
 	m_vertexShader = 0;
 	m_pixelShader = 0;
@@ -10,22 +9,22 @@ Shader::Shader()
 	m_matrixBuffer = 0;
 }
 
-Shader::~Shader()
+ColorShader::~ColorShader()
 {
 
 }
 
-bool Shader::Initialize(ID3D11Device* device, HWND hwnd)
+bool ColorShader::Initialize(ID3D11Device* device, HWND hwnd)
 {
-	return InitializeShader(device, hwnd, "color.vs", "color.ps");
+	return InitializeShader(device, hwnd, "Shaders/Color.vs", "Shaders/Color.ps");
 }
 
-void Shader::Shutdown()
+void ColorShader::Shutdown()
 {
 	ShutdownShader();
 }
 
-bool Shader::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix)
+bool ColorShader::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix)
 {
 	bool result;
 
@@ -42,7 +41,7 @@ bool Shader::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX
 	return true;
 }
 
-bool Shader::InitializeShader(ID3D11Device* device, HWND hwnd, const char* vsFilename, const char* psFilename)
+bool ColorShader::InitializeShader(ID3D11Device* device, HWND hwnd, const char* vsFilename, const char* psFilename)
 {
 	HRESULT result;
 	ID3D10Blob* errorMessage;
@@ -149,7 +148,7 @@ bool Shader::InitializeShader(ID3D11Device* device, HWND hwnd, const char* vsFil
 	return true;
 }
 
-void Shader::ShutdownShader()
+void ColorShader::ShutdownShader()
 {
 	if (m_matrixBuffer) { m_matrixBuffer->Release(); m_matrixBuffer = 0; }
 	if (m_layout) { m_layout->Release(); m_layout = 0; }
@@ -157,11 +156,11 @@ void Shader::ShutdownShader()
 	if (m_vertexShader) { m_vertexShader->Release(); m_vertexShader = 0; }
 }
 
-void Shader::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd, const char* shaderFilename)
+void ColorShader::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd, const char* shaderFilename)
 {
 	char* compileErrors;
 	size_t bufferSize;
-	ofstream fout;
+	std::ofstream fout;
 
 	compileErrors = (char*)(errorMessage->GetBufferPointer());
 	bufferSize = errorMessage->GetBufferSize();
@@ -180,7 +179,7 @@ void Shader::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND hwnd, const
 	MessageBox(hwnd, "Error compiling shader. Check shader-error.txt for message.", (char*)shaderFilename, MB_OK);
 }
 
-bool Shader::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix)
+bool ColorShader::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -216,7 +215,7 @@ bool Shader::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX wo
 	return true;
 }
 
-void Shader::RenderShader(ID3D11DeviceContext* deviceContext, int indexCount)
+void ColorShader::RenderShader(ID3D11DeviceContext* deviceContext, int indexCount)
 {
 	// Tell the IA stage how to interpret the vertex buffer bytes.
 	deviceContext->IASetInputLayout(m_layout);

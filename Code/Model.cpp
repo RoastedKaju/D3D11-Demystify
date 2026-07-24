@@ -1,4 +1,5 @@
 #include "Model.hpp"
+#include "Utils.hpp"
 
 Model::Model()
 {
@@ -11,13 +12,28 @@ Model::~Model()
 
 }
 
-bool Model::Initialize(ID3D11Device* device)
+bool Model::Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceContext, const char* filename)
 {
-	return InitializeBuffers(device);
+	bool result;
+
+	result = InitializeBuffers(device);
+	if (!result)
+	{
+		return false;
+	}
+
+	result = LoadTexture(device, deviceContext, filename);
+	if (!result)
+	{
+		return false;
+	}
+
+	return true;
 }
 
 void Model::Shutdown()
 {
+	ReleaseTexture();
 	ShutdownBuffers();
 }
 
@@ -29,6 +45,11 @@ void Model::Render(ID3D11DeviceContext* deviceContext)
 int Model::GetIndexCount()
 {
 	return m_indexCount;
+}
+
+ID3D11ShaderResourceView* Model::GetTexture()
+{
+	return m_texture->GetTexture();
 }
 
 bool Model::InitializeBuffers(ID3D11Device* device)
@@ -57,13 +78,16 @@ bool Model::InitializeBuffers(ID3D11Device* device)
 	}
 
 	vertices[0].position = XMFLOAT3(-1.0f, -1.0f, 0.0f);  // bottom left
-	vertices[0].color = XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f);  // red
+	//vertices[0].color = XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f);  // red
+	vertices[0].texture = XMFLOAT2(0.0f, 1.0f);
 
 	vertices[1].position = XMFLOAT3(0.0f, 1.0f, 0.0f);    // top middle
-	vertices[1].color = XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f);  // green
+	//vertices[1].color = XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f);  // green
+	vertices[1].texture = XMFLOAT2(0.5f, 0.0f);
 
 	vertices[2].position = XMFLOAT3(1.0f, -1.0f, 0.0f);   // bottom right
-	vertices[2].color = XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f);  // blue
+	//vertices[2].color = XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f);  // blue
+	vertices[2].texture = XMFLOAT2(1.0f, 1.0f);
 
 	indices[0] = 0;
 	indices[1] = 1;
@@ -148,4 +172,34 @@ void Model::RenderBuffers(ID3D11DeviceContext* deviceContext)
 
 	// Tell the IA stage to interpret every 3 indices as one triangle.
 	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+}
+
+bool Model::LoadTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, const char* filename)
+{
+	bool result;
+
+	m_texture = new Texture{};
+	if (!m_texture)
+	{
+		return false;
+	}
+
+	result = m_texture->Initialize(device, deviceContext, filename);
+	if (!result)
+	{
+		return false;
+	}
+
+	PRINT("Loaded Resource: %s\n", filename);
+	return true;
+}
+
+void Model::ReleaseTexture()
+{
+	if (m_texture)
+	{
+		m_texture->Shutdown();
+		delete m_texture;
+		m_texture = 0;
+	}
 }

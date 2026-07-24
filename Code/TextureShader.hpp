@@ -6,25 +6,19 @@
 #include <fstream>
 
 using namespace DirectX;
-using namespace std;
 
-/**
-* Wraps one vertex and pixel shader, plus everything that they need.
-* Input layout defines how vertex buffer bytes map to shader inputs.
-* The constant buffer that carries the World/View/Projection matrices.
-*/
-class Shader
+class TextureShader
 {
 public:
-	Shader();
-	~Shader();
+	TextureShader();
+	~TextureShader();
 
-	Shader(const Shader&) = delete;
-	Shader(Shader&&) = delete;
+	TextureShader(const TextureShader&) = delete;
+	TextureShader(TextureShader&&) = delete;
 
 	bool Initialize(ID3D11Device*, HWND);
 	void Shutdown();
-	bool Render(ID3D11DeviceContext*, int, XMMATRIX, XMMATRIX, XMMATRIX);
+	bool Render(ID3D11DeviceContext*, int, XMMATRIX, XMMATRIX, XMMATRIX, ID3D11ShaderResourceView*);
 
 private:
 	struct MatrixBufferType
@@ -38,7 +32,7 @@ private:
 	void ShutdownShader();
 	void OutputShaderErrorMessage(ID3D10Blob*, HWND, const char*);
 
-	bool SetShaderParameters(ID3D11DeviceContext*, XMMATRIX, XMMATRIX, XMMATRIX);
+	bool SetShaderParameters(ID3D11DeviceContext*, XMMATRIX, XMMATRIX, XMMATRIX, ID3D11ShaderResourceView*);
 	void RenderShader(ID3D11DeviceContext*, int);
 
 private:
@@ -46,4 +40,5 @@ private:
 	ID3D11PixelShader* m_pixelShader;
 	ID3D11InputLayout* m_layout;
 	ID3D11Buffer* m_matrixBuffer;
+	ID3D11SamplerState* m_sampleState;
 };

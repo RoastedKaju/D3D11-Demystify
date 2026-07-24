@@ -6,7 +6,8 @@
 #include "D3DContext.hpp"
 #include "Camera.hpp"
 #include "Model.hpp"
-#include "Shader.hpp"
+#include "ColorShader.hpp"
+#include "TextureShader.hpp"
 
 // Global rendering constants
 const bool FULL_SCREEN = false;
@@ -34,5 +35,6 @@ private:
 	D3DContext* m_direct3D;
 	Camera* m_camera;
 	Model* m_model;
-	Shader* m_colorShader;
+	ColorShader* m_colorShader;
+	TextureShader* m_textureShader;
 };

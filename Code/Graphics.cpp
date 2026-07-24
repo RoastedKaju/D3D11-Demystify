@@ -7,6 +7,7 @@ Graphics::Graphics()
 	m_camera = 0;
 	m_model = 0;
 	m_colorShader = 0;
+	m_textureShader = 0;
 }
 
 Graphics::~Graphics()
@@ -37,21 +38,21 @@ bool Graphics::Initialize(int width, int height, HWND hwnd)
 	{
 		return false;
 	}
-	m_camera->SetPosition(0.0f, 0.0f, -10.0f);
+	m_camera->SetPosition(0.0f, 0.0f, -5.0f);
 
 	m_model = new Model{};
 	if (!m_model)
 	{
 		return false;
 	}
-	result = m_model->Initialize(m_direct3D->GetDevice());
+	result = m_model->Initialize(m_direct3D->GetDevice(), m_direct3D->GetDeviceContext(), "Textures/BrickWall.jpg");
 	if (!result)
 	{
 		MessageBox(hwnd, "Could not initialize the model object.", "Error", MB_OK);
 		return false;
 	}
 
-	m_colorShader = new Shader{};
+	m_colorShader = new ColorShader{};
 	if (!m_colorShader)
 	{
 		return false;
@@ -63,11 +64,30 @@ bool Graphics::Initialize(int width, int height, HWND hwnd)
 		return false;
 	}
 
+	m_textureShader = new TextureShader{};
+	if (!m_textureShader)
+	{
+		return false;
+	}
+	result = m_textureShader->Initialize(m_direct3D->GetDevice(), hwnd);
+	if (!result)
+	{
+		MessageBox(hwnd, "Could not initialize the texture shader object.", "Error", MB_OK);
+		return false;
+	}
+
 	return true;
 }
 
 void Graphics::Shutdown()
 {
+	if (m_textureShader)
+	{
+		m_textureShader->Shutdown();
+		delete m_textureShader;
+		m_textureShader = 0;
+	}
+
 	if (m_colorShader)
 	{
 		m_colorShader->Shutdown();
@@ -118,10 +138,17 @@ bool Graphics::Render()
 		m_model->Render(m_direct3D->GetDeviceContext());
 
 		// draw using color shader
-		result = m_colorShader->Render(m_direct3D->GetDeviceContext(), m_model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix);
+		//result = m_colorShader->Render(m_direct3D->GetDeviceContext(), m_model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix);
+		//if (!result)
+		//{
+		//	PRINT("Failed to render frame using color shader.\n");
+		//	return false;
+		//}
+
+		result = m_textureShader->Render(m_direct3D->GetDeviceContext(), m_model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_model->GetTexture());
 		if (!result)
 		{
-			PRINT("Failed to render frame using color shader.\n");
+			PRINT("Failed to render frame using texture shader.\n");
 			return false;
 		}
 	}
