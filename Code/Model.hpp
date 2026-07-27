@@ -2,6 +2,7 @@
 
 #include <d3d11.h>
 #include <DirectXMath.h>
+#include <vector>
 
 #include "Texture.hpp"
 
@@ -13,7 +14,7 @@ public:
 	Model();
 	~Model();
 
-	bool Initialize(ID3D11Device*, ID3D11DeviceContext*, const char*);
+	bool Initialize(ID3D11Device*, ID3D11DeviceContext*, const char*, const char*);
 	void Shutdown();
 	void Render(ID3D11DeviceContext*);
 
@@ -26,17 +27,18 @@ private:
 	struct VertexType
 	{
 		XMFLOAT3 position;
-		//XMFLOAT4 color;
 		XMFLOAT2 texture;
 		XMFLOAT3 normal;
 	};
 
-	bool InitializeBuffers(ID3D11Device*);
+	bool InitializeBuffers(ID3D11Device*, const char*);
 	void ShutdownBuffers();
 	void RenderBuffers(ID3D11DeviceContext*);
 
 	bool LoadTexture(ID3D11Device*, ID3D11DeviceContext*, const char*);
 	void ReleaseTexture();
+
+	bool LoadModel(const char*);
 
 private:
 	ID3D11Buffer* m_vertexBuffer;
@@ -44,4 +46,7 @@ private:
 	int m_vertexCount;
 	int m_indexCount;
 	Texture* m_texture;
+
+	std::vector<VertexType> m_vertices;
+	std::vector<unsigned long> m_indices;
 };

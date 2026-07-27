@@ -1,6 +1,9 @@
 #include "Model.hpp"
 #include "Utils.hpp"
 
+#define TINYOBJLOADER_IMPLEMENTATION
+#include <TinyObjLoader.h>
+
 Model::Model()
 {
 	m_vertexBuffer = 0;
@@ -12,17 +15,17 @@ Model::~Model()
 
 }
 
-bool Model::Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceContext, const char* filename)
+bool Model::Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceContext, const char* modelPath, const char* texturePath)
 {
 	bool result;
 
-	result = InitializeBuffers(device);
+	result = InitializeBuffers(device, modelPath);
 	if (!result)
 	{
 		return false;
 	}
 
-	result = LoadTexture(device, deviceContext, filename);
+	result = LoadTexture(device, deviceContext, texturePath);
 	if (!result)
 	{
 		return false;
@@ -52,49 +55,24 @@ ID3D11ShaderResourceView* Model::GetTexture()
 	return m_texture->GetTexture();
 }
 
-bool Model::InitializeBuffers(ID3D11Device* device)
+bool Model::InitializeBuffers(ID3D11Device* device, const char* modelPath)
 {
-	VertexType* vertices;
-	unsigned long* indices;
 	D3D11_BUFFER_DESC vertexBufferDesc;
 	D3D11_BUFFER_DESC indexBufferDesc;
 	D3D11_SUBRESOURCE_DATA vertexData;
 	D3D11_SUBRESOURCE_DATA indexData;
-	HRESULT result;
+	HRESULT hResult;
 
-	m_vertexCount = 3;
-	m_indexCount = 3;
-
-	vertices = new VertexType[m_vertexCount];
-	if (!vertices)
+	bool result = LoadModel(modelPath);
+	if (!result)
 	{
 		return false;
 	}
 
-	indices = new unsigned long[m_indexCount];
-	if (!indices)
-	{
-		return false;
-	}
+	m_vertexCount = (int)m_vertices.size();
+	m_indexCount = (int)m_indices.size();
 
-	vertices[0].position = XMFLOAT3(-1.0f, -1.0f, 0.0f);  // bottom left
-	//vertices[0].color = XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f);  // red
-	vertices[0].texture = XMFLOAT2(0.0f, 1.0f);
-	vertices[0].normal = XMFLOAT3(0.0f, 0.0f, -1.0f);
-
-	vertices[1].position = XMFLOAT3(0.0f, 1.0f, 0.0f);    // top middle
-	//vertices[1].color = XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f);  // green
-	vertices[1].texture = XMFLOAT2(0.5f, 0.0f);
-	vertices[1].normal = XMFLOAT3(0.0f, 0.0f, -1.0f);
-
-	vertices[2].position = XMFLOAT3(1.0f, -1.0f, 0.0f);   // bottom right
-	//vertices[2].color = XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f);  // blue
-	vertices[2].texture = XMFLOAT2(1.0f, 1.0f);
-	vertices[2].normal = XMFLOAT3(0.0f, 0.0f, -1.0f);
-
-	indices[0] = 0;
-	indices[1] = 1;
-	indices[2] = 2;
+	PRINT("Vertex Count is: %d\n", m_vertexCount);
 
 	// Vertex Buffer
 	vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;	// GPU read/write, no CPU access
@@ -106,12 +84,12 @@ bool Model::InitializeBuffers(ID3D11Device* device)
 
 	// SubresourceData is how you give a buffer its *initial* contents at
 	// creation time - required here since USAGE_DEFAULT can't be mapped later.
-	vertexData.pSysMem = vertices;
+	vertexData.pSysMem = m_vertices.data();
 	vertexData.SysMemPitch = 0;
 	vertexData.SysMemSlicePitch = 0;
 
-	result = device->CreateBuffer(&vertexBufferDesc, &vertexData, &m_vertexBuffer);
-	if (FAILED(result))
+	hResult = device->CreateBuffer(&vertexBufferDesc, &vertexData, &m_vertexBuffer);
+	if (FAILED(hResult))
 	{
 		return false;
 	}
@@ -124,22 +102,15 @@ bool Model::InitializeBuffers(ID3D11Device* device)
 	indexBufferDesc.MiscFlags = 0;
 	indexBufferDesc.StructureByteStride = 0;
 
-	indexData.pSysMem = indices;
+	indexData.pSysMem = m_indices.data();
 	indexData.SysMemPitch = 0;
 	indexData.SysMemSlicePitch = 0;
 
-	result = device->CreateBuffer(&indexBufferDesc, &indexData, &m_indexBuffer);
-	if (FAILED(result))
+	hResult = device->CreateBuffer(&indexBufferDesc, &indexData, &m_indexBuffer);
+	if (FAILED(hResult))
 	{
 		return false;
 	}
-
-	// Release the CPU arrays
-	delete[] vertices;
-	vertices = 0;
-
-	delete[] indices;
-	indices = 0;
 
 	return true;
 }
@@ -177,7 +148,7 @@ void Model::RenderBuffers(ID3D11DeviceContext* deviceContext)
 	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
-bool Model::LoadTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, const char* filename)
+bool Model::LoadTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, const char* texturePath)
 {
 	bool result;
 
@@ -187,13 +158,88 @@ bool Model::LoadTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext
 		return false;
 	}
 
-	result = m_texture->Initialize(device, deviceContext, filename);
+	result = m_texture->Initialize(device, deviceContext, texturePath);
 	if (!result)
 	{
 		return false;
 	}
 
-	PRINT("Loaded Resource: %s\n", filename);
+	PRINT("Loaded Resource: %s\n", texturePath);
+	return true;
+}
+
+bool Model::LoadModel(const char* modelPath)
+{
+	tinyobj::ObjReaderConfig readerConfig;
+	readerConfig.triangulate = true;
+
+	tinyobj::ObjReader reader;
+
+	if (!reader.ParseFromFile(modelPath, readerConfig))
+	{
+		if (!reader.Error().empty())
+		{
+			PRINT("Error on loading model: %s\n", reader.Error().c_str());
+		}
+		return false;
+	}
+
+	const tinyobj::attrib_t& attrib = reader.GetAttrib();
+	const std::vector<tinyobj::shape_t>& shapes = reader.GetShapes();
+
+	m_vertices.clear();
+	for (const auto& shape : shapes)
+	{
+		for (const auto& idx : shape.mesh.indices)
+		{
+			VertexType vertex;
+
+			vertex.position = XMFLOAT3(
+				attrib.vertices[3 * idx.vertex_index + 0],
+				attrib.vertices[3 * idx.vertex_index + 1],
+				attrib.vertices[3 * idx.vertex_index + 2]
+			);
+
+			if (idx.texcoord_index >= 0)
+			{
+				vertex.texture = XMFLOAT2(
+					attrib.texcoords[2 * idx.texcoord_index + 0],
+					1.0f - attrib.texcoords[2 * idx.texcoord_index + 1]
+				);
+			}
+			else
+			{
+				vertex.texture = XMFLOAT2(0.0f, 0.0f);
+			}
+
+			if (idx.normal_index >= 0)
+			{
+				vertex.normal = XMFLOAT3(
+					attrib.normals[3 * idx.normal_index + 0],
+					attrib.normals[3 * idx.normal_index + 1],
+					attrib.normals[3 * idx.normal_index + 2]
+				);
+			}
+			else
+			{
+				vertex.normal = XMFLOAT3(0.0f, 1.0f, 0.0f);
+			}
+
+			m_vertices.push_back(vertex);
+		}
+	}
+
+	if (m_vertices.empty())
+	{
+		return false;
+	}
+
+	m_indices.resize(m_vertices.size());
+	for (size_t i = 0; i < m_indices.size(); i++)
+	{
+		m_indices[i] = (unsigned long)i;
+	}
+
 	return true;
 }
 

@@ -23,3 +23,9 @@ target_link_libraries(${PROJECT_NAME} PRIVATE d3d11 dxgi d3dcompiler)
 
 # When you hit F5 this makes the working directory where .EXE lives
 set_property(TARGET ${PROJECT_NAME} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
+
+# Tiny OBJ
+target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_SOURCE_DIR}/External/TinyObjLoader")
+
+# Compile definitions
+target_compile_definitions(${PROJECT_NAME} PRIVATE NOMINMAX)

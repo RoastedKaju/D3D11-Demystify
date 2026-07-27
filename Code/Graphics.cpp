@@ -47,7 +47,7 @@ bool Graphics::Initialize(int width, int height, HWND hwnd)
 	{
 		return false;
 	}
-	result = m_model->Initialize(m_direct3D->GetDevice(), m_direct3D->GetDeviceContext(), "Textures/BrickWall.jpg");
+	result = m_model->Initialize(m_direct3D->GetDevice(), m_direct3D->GetDeviceContext(), "Models/Skull/Skull.obj", "Models/Skull/Diffuse.jpg");
 	if (!result)
 	{
 		MessageBox(hwnd, "Could not initialize the model object.", "Error", MB_OK);
@@ -165,27 +165,18 @@ bool Graphics::Render()
 	{
 		m_camera->Render();
 
-		m_direct3D->GetWorldMatrix(worldMatrix);
+		//m_direct3D->GetWorldMatrix(worldMatrix);
+		XMMATRIX scaleMatrix = XMMatrixScaling(1.0f, 1.0f, 1.0f);
+		XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYaw(0.0f, XMConvertToRadians(180.0f), 0.0f);
+		XMMATRIX translationMatrix = XMMatrixTranslation(0.0f, 0.0f, 0.0f);
+
+		worldMatrix = scaleMatrix * rotationMatrix * translationMatrix;
+
 		m_camera->GetViewMatrix(viewMatrix);
 		m_direct3D->GetProjectionMatrix(projectionMatrix);
 
 		// Put the model's vertex/index buffers on pipeline
 		m_model->Render(m_direct3D->GetDeviceContext());
-
-		// draw using color shader
-		//result = m_colorShader->Render(m_direct3D->GetDeviceContext(), m_model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix);
-		//if (!result)
-		//{
-		//	PRINT("Failed to render frame using color shader.\n");
-		//	return false;
-		//}
-
-		//result = m_textureShader->Render(m_direct3D->GetDeviceContext(), m_model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_model->GetTexture());
-		//if (!result)
-		//{
-		//	PRINT("Failed to render frame using texture shader.\n");
-		//	return false;
-		//}
 
 		const DirectX::XMFLOAT4 lightDirection = XMFLOAT4(m_light->GetDirection().x, m_light->GetDirection().y, m_light->GetDirection().z, 0.0f);
 		result = m_lightShader->Render(m_direct3D->GetDeviceContext(), m_model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_model->GetTexture(), m_light->GetDiffuseColor(), lightDirection);
