@@ -30,11 +30,11 @@ bool LightShader::Render(ID3D11DeviceContext* deviceContext,
 	int indexCount,
 	XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix,
 	ID3D11ShaderResourceView* texture,
-	XMFLOAT4 diffuseColor, XMFLOAT4 lightDirection)
+	XMFLOAT4 diffuseColor, XMFLOAT4 ambientColor, XMFLOAT4 lightDirection)
 {
 	bool result;
 
-	result = SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, texture, diffuseColor, lightDirection);
+	result = SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, texture, diffuseColor, ambientColor, lightDirection);
 	if (!result)
 	{
 		return false;
@@ -199,7 +199,7 @@ void LightShader::OutputShaderErrorMessage(ID3DBlob* errorMessage, HWND hwnd, co
 bool LightShader::SetShaderParameters(ID3D11DeviceContext* deviceContext,
 	XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix,
 	ID3D11ShaderResourceView* texture,
-	XMFLOAT4 diffuseColor, XMFLOAT4 lightDirection)
+	XMFLOAT4 diffuseColor, XMFLOAT4 ambientColor, XMFLOAT4 lightDirection)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -238,6 +238,7 @@ bool LightShader::SetShaderParameters(ID3D11DeviceContext* deviceContext,
 
 	lightDataPtr = (LightBufferType*)mappedResource.pData;
 	lightDataPtr->diffuseColor = diffuseColor;
+	lightDataPtr->ambientColor = ambientColor;
 	lightDataPtr->lightDirection = lightDirection;
 
 	deviceContext->Unmap(m_lightBuffer, 0);

@@ -42,4 +42,6 @@ private:
 	TextureShader* m_textureShader;
 	LightShader* m_lightShader;
 	Light* m_light;
+
+	float m_rotationY = 0.0f;
 };

@@ -89,12 +89,13 @@ bool Graphics::Initialize(int width, int height, HWND hwnd)
 		MessageBox(hwnd, "Could not initialize the light shader object.", "Error", MB_OK);
 		return false;
 	}
-
+	// Pure data class, which contains the light direction and position
 	m_light = new Light{};
 	if (!m_light)
 	{
 		return false;
 	}
+	m_light->SetAmbientColor(0.15f, 0.15f, 0.15f, 1.0f);
 	m_light->SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
 	m_light->SetDirection(0.0f, 0.0f, 1.0f);
 
@@ -153,6 +154,13 @@ void Graphics::Shutdown()
 
 bool Graphics::Frame()
 {
+	// Fixed increments in rotation of model
+	m_rotationY += 0.03f;
+	if (m_rotationY > XM_2PI)
+	{
+		m_rotationY -= XM_2PI;
+	}
+
 	return Render();
 }
 
@@ -167,7 +175,7 @@ bool Graphics::Render()
 
 		//m_direct3D->GetWorldMatrix(worldMatrix);
 		XMMATRIX scaleMatrix = XMMatrixScaling(1.0f, 1.0f, 1.0f);
-		XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYaw(0.0f, XMConvertToRadians(180.0f), 0.0f);
+		XMMATRIX rotationMatrix = XMMatrixRotationY(m_rotationY);
 		XMMATRIX translationMatrix = XMMatrixTranslation(0.0f, 0.0f, 0.0f);
 
 		worldMatrix = scaleMatrix * rotationMatrix * translationMatrix;
@@ -179,7 +187,7 @@ bool Graphics::Render()
 		m_model->Render(m_direct3D->GetDeviceContext());
 
 		const DirectX::XMFLOAT4 lightDirection = XMFLOAT4(m_light->GetDirection().x, m_light->GetDirection().y, m_light->GetDirection().z, 0.0f);
-		result = m_lightShader->Render(m_direct3D->GetDeviceContext(), m_model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_model->GetTexture(), m_light->GetDiffuseColor(), lightDirection);
+		result = m_lightShader->Render(m_direct3D->GetDeviceContext(), m_model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_model->GetTexture(), m_light->GetDiffuseColor(), m_light->GetAmbientColor(), lightDirection);
 		if (!result)
 		{
 			return false;

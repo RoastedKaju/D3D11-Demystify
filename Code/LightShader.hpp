@@ -18,7 +18,7 @@ public:
 
 	bool Initialize(ID3D11Device*, HWND);
 	void Shutdown();
-	bool Render(ID3D11DeviceContext*, int, XMMATRIX, XMMATRIX, XMMATRIX, ID3D11ShaderResourceView*, XMFLOAT4, XMFLOAT4);
+	bool Render(ID3D11DeviceContext*, int, XMMATRIX, XMMATRIX, XMMATRIX, ID3D11ShaderResourceView*, XMFLOAT4, XMFLOAT4, XMFLOAT4);
 
 private:
 	struct MatrixBufferType
@@ -32,6 +32,7 @@ private:
 	struct LightBufferType
 	{
 		XMFLOAT4 diffuseColor;
+		XMFLOAT4 ambientColor;
 		XMFLOAT4 lightDirection; // Direction needs only 3 floats but for padding reasons we pass it as float 4
 	};
 
@@ -39,7 +40,7 @@ private:
 	void ShutdownShader();
 	void OutputShaderErrorMessage(ID3DBlob*, HWND, const char*);
 
-	bool SetShaderParameters(ID3D11DeviceContext*, XMMATRIX, XMMATRIX, XMMATRIX, ID3D11ShaderResourceView*, XMFLOAT4, XMFLOAT4);
+	bool SetShaderParameters(ID3D11DeviceContext*, XMMATRIX, XMMATRIX, XMMATRIX, ID3D11ShaderResourceView*, XMFLOAT4, XMFLOAT4, XMFLOAT4);
 	void RenderShader(ID3D11DeviceContext*, int);
 
 private:
