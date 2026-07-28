@@ -97,7 +97,9 @@ bool Graphics::Initialize(int width, int height, HWND hwnd)
 	}
 	m_light->SetAmbientColor(0.15f, 0.15f, 0.15f, 1.0f);
 	m_light->SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
-	m_light->SetDirection(0.0f, 0.0f, 1.0f);
+	m_light->SetDirection(3.0f, 0.0f, 0.3f);
+	m_light->SetSpecularColor(1.0f, 1.0f, 1.0f, 1.0f);
+	m_light->SetSpecularPower(32.0f);
 
 	return true;
 }
@@ -187,7 +189,13 @@ bool Graphics::Render()
 		m_model->Render(m_direct3D->GetDeviceContext());
 
 		const DirectX::XMFLOAT4 lightDirection = XMFLOAT4(m_light->GetDirection().x, m_light->GetDirection().y, m_light->GetDirection().z, 0.0f);
-		result = m_lightShader->Render(m_direct3D->GetDeviceContext(), m_model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_model->GetTexture(), m_light->GetDiffuseColor(), m_light->GetAmbientColor(), lightDirection);
+		result = m_lightShader->Render(m_direct3D->GetDeviceContext(),
+			m_model->GetIndexCount(),
+			worldMatrix, viewMatrix, projectionMatrix,
+			m_model->GetTexture(),
+			m_light->GetDiffuseColor(), m_light->GetAmbientColor(), lightDirection, m_light->GetSpecularColor(), m_light->GetSpecularPower(),
+			m_camera->GetPosition());
+
 		if (!result)
 		{
 			return false;
