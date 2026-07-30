@@ -1,0 +1,50 @@
+#define NUM_LIGHTS 4
+
+Texture2D shaderTexture;
+SamplerState SampleType;
+
+// Bound to the pixel shader stage - one diffuse color per light, matching
+// lightPosition[] on the vertex side.
+cbuffer LightColorBuffer
+{
+    float4 diffuseColor[NUM_LIGHTS];
+};
+
+struct PixelInputType
+{
+    float4 position : SV_POSITION;
+    float2 tex : TEXCOORD0;
+    float3 normal : NORMAL;
+    float3 lightDir[NUM_LIGHTS] : TEXCOORD1;
+};
+
+float4 MultiLightPixelShader(PixelInputType input) : SV_TARGET
+{
+    float4 textureColor;
+    float4 lightColorSum;
+    float intensity;
+    int i;
+
+    textureColor = shaderTexture.Sample(SampleType, input.tex);
+
+    lightColorSum = float4(0.0f, 0.0f, 0.0f, 0.0f);
+
+    // Deliberately simplified for this tutorial: no ambient, no specular,
+    // and no distance falloff/attenuation - just N dot L per light, summed.
+    // This keeps the one new idea (multiple independent light sources
+    // contributing to the same pixel) isolated from everything else this
+    // course has already covered. Combining this with ambient/specular from
+    // Tutorials 9/10, and adding real attenuation, is a natural next step
+    // once this makes sense on its own.
+    for (i = 0; i < NUM_LIGHTS; i++)
+    {
+        intensity = saturate(dot(input.normal, input.lightDir[i]));
+        lightColorSum += (diffuseColor[i] * intensity);
+    }
+
+    // Multiple lights can easily push a channel above 1.0 where their
+    // areas of effect overlap - clamp before applying to the texture.
+    lightColorSum = saturate(lightColorSum);
+
+    return lightColorSum * textureColor;
+}

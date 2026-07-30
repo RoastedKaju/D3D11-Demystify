@@ -35,6 +35,11 @@ void Light::SetSpecularPower(float power)
 	m_specularPower = power;
 }
 
+void Light::SetPosition(float x, float y, float z)
+{
+	m_position = XMFLOAT3(x, y, z);
+}
+
 XMFLOAT4 Light::GetAmbientColor() const
 {
 	return m_ambientColor;
@@ -58,4 +63,9 @@ XMFLOAT4 Light::GetSpecularColor() const
 float Light::GetSpecularPower() const
 {
 	return m_specularPower;
+}
+
+XMFLOAT3 Light::GetPosition() const
+{
+	return m_position;
 }

@@ -11,6 +11,7 @@
 #include "TextureShader.hpp"
 #include "LightShader.hpp"
 #include "Light.hpp"
+#include "MultiLightShader.hpp"
 
 // Global rendering constants
 const bool FULL_SCREEN = false;
@@ -43,5 +44,8 @@ private:
 	LightShader* m_lightShader;
 	Light* m_light;
 
-	float m_rotationY = 0.0f;
+	MultiLightShader* m_multiLightShader;
+	Light* m_lights[NUM_LIGHTS]; // 4 lights
+
+	float m_rotationY;
 };

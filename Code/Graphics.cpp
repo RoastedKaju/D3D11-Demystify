@@ -10,6 +10,14 @@ Graphics::Graphics()
 	m_textureShader = 0;
 	m_lightShader = nullptr;
 	m_light = nullptr;
+
+	m_multiLightShader = 0;
+	for (int i = 0; i < NUM_LIGHTS; ++i)
+	{
+		m_lights[i] = 0;
+	}
+
+	m_rotationY = 0.0f;
 }
 
 Graphics::~Graphics()
@@ -101,11 +109,59 @@ bool Graphics::Initialize(int width, int height, HWND hwnd)
 	m_light->SetSpecularColor(1.0f, 1.0f, 1.0f, 1.0f);
 	m_light->SetSpecularPower(32.0f);
 
+	// Multi lights
+	m_multiLightShader = new MultiLightShader{};
+	if (!m_multiLightShader)
+	{
+		return false;
+	}
+	result = m_multiLightShader->Initialize(m_direct3D->GetDevice(), hwnd);
+	if (!result)
+	{
+		MessageBox(hwnd, "Could not initialize the multi-light shader object.", "Error", MB_OK);
+		return false;
+	}
+
+	// Four point lights at the corners of a rough box around the model
+	// origin, each a different color, so it's immediately obvious on
+	// screen which light is contributing where. These positions assume a
+	// roughly unit-to-few-units-scale model sitting near the origin -
+	// adjust them (and/or the model's scale in Render()) to taste.
+	for (int i = 0; i < NUM_LIGHTS; i++)
+	{
+		m_lights[i] = new Light{};
+		if (!m_lights[i])
+		{
+			return false;
+		}
+	}
+
+	m_lights[0]->SetDiffuseColor(1.0f, 0.0f, 0.0f, 1.0f);   // red
+	m_lights[0]->SetPosition(-3.0f, 1.0f, -3.0f);
+
+	m_lights[1]->SetDiffuseColor(0.0f, 1.0f, 0.0f, 1.0f);   // green
+	m_lights[1]->SetPosition(3.0f, 1.0f, -3.0f);
+
+	m_lights[2]->SetDiffuseColor(0.0f, 0.0f, 1.0f, 1.0f);   // blue
+	m_lights[2]->SetPosition(-3.0f, 1.0f, 3.0f);
+
+	m_lights[3]->SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);   // white
+	m_lights[3]->SetPosition(3.0f, 1.0f, 3.0f);
+
 	return true;
 }
 
 void Graphics::Shutdown()
 {
+	for (int i = 0; i < NUM_LIGHTS; i++)
+	{
+		if (m_lights[i])
+		{
+			delete m_lights[i];
+			m_lights[i] = 0;
+		}
+	}
+
 	if (m_light)
 	{
 		delete m_light;
@@ -170,6 +226,8 @@ bool Graphics::Render()
 {
 	XMMATRIX worldMatrix, viewMatrix, projectionMatrix;
 	bool result;
+	XMFLOAT3 lightPositions[NUM_LIGHTS];
+	XMFLOAT4 lightDiffuseColors[NUM_LIGHTS];
 
 	m_direct3D->BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
 	{
@@ -188,14 +246,21 @@ bool Graphics::Render()
 		// Put the model's vertex/index buffers on pipeline
 		m_model->Render(m_direct3D->GetDeviceContext());
 
-		const DirectX::XMFLOAT4 lightDirection = XMFLOAT4(m_light->GetDirection().x, m_light->GetDirection().y, m_light->GetDirection().z, 0.0f);
-		result = m_lightShader->Render(m_direct3D->GetDeviceContext(),
-			m_model->GetIndexCount(),
-			worldMatrix, viewMatrix, projectionMatrix,
-			m_model->GetTexture(),
-			m_light->GetDiffuseColor(), m_light->GetAmbientColor(), lightDirection, m_light->GetSpecularColor(), m_light->GetSpecularPower(),
-			m_camera->GetPosition());
+		//const DirectX::XMFLOAT4 lightDirection = XMFLOAT4(m_light->GetDirection().x, m_light->GetDirection().y, m_light->GetDirection().z, 0.0f);
+		//result = m_lightShader->Render(m_direct3D->GetDeviceContext(),
+		//	m_model->GetIndexCount(),
+		//	worldMatrix, viewMatrix, projectionMatrix,
+		//	m_model->GetTexture(),
+		//	m_light->GetDiffuseColor(), m_light->GetAmbientColor(), lightDirection, m_light->GetSpecularColor(), m_light->GetSpecularPower(),
+		//	m_camera->GetPosition());
 
+		for (int i = 0; i < NUM_LIGHTS; ++i)
+		{
+			lightPositions[i] = m_lights[i]->GetPosition();
+			lightDiffuseColors[i] = m_lights[i]->GetDiffuseColor();
+		}
+
+		result = m_multiLightShader->Render(m_direct3D->GetDeviceContext(), m_model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_model->GetTexture(), lightPositions, lightDiffuseColors);
 		if (!result)
 		{
 			return false;
