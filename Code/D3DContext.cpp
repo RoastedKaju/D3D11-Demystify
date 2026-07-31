@@ -198,6 +198,14 @@ bool D3DContext::Initialize(int width, int height, bool vsync, HWND hwnd, bool f
 
 	m_deviceContext->OMSetDepthStencilState(m_depthStencilState, 1);
 
+	// A second depth stencil state but with depth set to false
+	depthStencilDesc.DepthEnable = false;
+	result = m_device->CreateDepthStencilState(&depthStencilDesc, &m_depthDisabledStencilState);
+	if (FAILED(result))
+	{
+		return false;
+	}
+
 	// Depth stencil view, like render target view, this is where GPU writes
 	ZeroMemory(&depthStencilViewDesc, sizeof(depthStencilViewDesc));
 
@@ -331,4 +339,14 @@ void D3DContext::GetVideoCardInfo(char* cardName, int& memory)
 {
 	strcpy_s(cardName, 128, m_videoCardDesc);
 	memory = m_videoCardMemory;
+}
+
+void D3DContext::TurnZBufferOn()
+{
+	m_deviceContext->OMSetDepthStencilState(m_depthStencilState, 1);
+}
+
+void D3DContext::TurnZBufferOff()
+{
+	m_deviceContext->OMSetDepthStencilState(m_depthDisabledStencilState, 1);
 }

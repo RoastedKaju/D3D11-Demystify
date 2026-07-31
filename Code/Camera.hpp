@@ -25,8 +25,14 @@ public:
 	void Render();
 	void GetViewMatrix(XMMATRIX&);
 
+	// A view matrix computed only once, typically after set position and rotation and cached
+	// UI is rendered with this, so they stay locked regardless of where the camera looks.
+	void RenderBaseViewMatrix();
+	void GetBaseViewMatrix(XMMATRIX&);
+
 private:
 	float m_pX, m_pY, m_pZ;
 	float m_rX, m_rY, m_rZ;
 	XMMATRIX m_viewMatrix;
+	XMMATRIX m_baseViewMatrix;
 };

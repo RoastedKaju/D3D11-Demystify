@@ -12,6 +12,7 @@
 #include "LightShader.hpp"
 #include "Light.hpp"
 #include "MultiLightShader.hpp"
+#include "Bitmap.hpp"
 
 // Global rendering constants
 const bool FULL_SCREEN = false;
@@ -40,12 +41,14 @@ private:
 	Camera* m_camera;
 	Model* m_model;
 	ColorShader* m_colorShader;
-	TextureShader* m_textureShader;
 	LightShader* m_lightShader;
 	Light* m_light;
 
 	MultiLightShader* m_multiLightShader;
 	Light* m_lights[NUM_LIGHTS]; // 4 lights
+
+	TextureShader* m_textureShader;
+	Bitmap* m_bitmap;
 
 	float m_rotationY;
 };
