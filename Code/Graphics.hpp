@@ -13,6 +13,7 @@
 #include "Light.hpp"
 #include "MultiLightShader.hpp"
 #include "Bitmap.hpp"
+#include "Sprite.hpp"
 
 // Global rendering constants
 const bool FULL_SCREEN = false;
@@ -31,10 +32,10 @@ public:
 
 	bool Initialize(int, int, HWND);
 	void Shutdown();
-	bool Frame();
+	bool Frame(float);
 
 private:
-	bool Render();
+	bool Render(float);
 
 private:
 	D3DContext* m_direct3D;
@@ -49,6 +50,7 @@ private:
 
 	TextureShader* m_textureShader;
 	Bitmap* m_bitmap;
+	Sprite* m_sprite;
 
 	float m_rotationY;
 };

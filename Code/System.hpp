@@ -5,6 +5,7 @@
 
 #include "Input.hpp"
 #include "Graphics.hpp"
+#include "Timer.hpp"
 
 class System
 {
@@ -34,6 +35,7 @@ private:
 
 	Input* m_input;
 	Graphics* m_graphics;
+	Timer* m_timer;
 };
 
 // Forward-declared free functions: raw Win32 callback the OS calls directly.

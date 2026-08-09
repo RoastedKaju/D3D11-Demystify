@@ -5,6 +5,7 @@ System::System()
 {
 	m_input = nullptr;
 	m_graphics = nullptr;
+	m_timer = nullptr;
 
 #ifdef _DEBUG
 	Utils::InitializeConsole();
@@ -45,11 +46,30 @@ bool System::Initialize()
 		return false;
 	}
 
+	m_timer = new Timer{};
+	if (!m_timer)
+	{
+		return false;
+	}
+
+	result = m_timer->Initialize();
+	if (!result)
+	{
+		MessageBox(m_hWnd, "Could not initialize the timer object.", "Error", MB_OK);
+		return false;
+	}
+
 	return true;
 }
 
 void System::Shutdown()
 {
+	if (m_timer)
+	{
+		delete m_timer;
+		m_timer = nullptr;
+	}
+
 	// Shutdown Graphics
 	if (m_graphics)
 	{
@@ -127,7 +147,10 @@ bool System::Frame()
 		return false;
 	}
 
-	result = m_graphics->Frame();
+	// Measure elapsed timer since last frame
+	m_timer->Frame();
+
+	result = m_graphics->Frame(m_timer->GetTime());
 	if (!result)
 	{
 		return false;

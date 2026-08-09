@@ -11,6 +11,7 @@ Graphics::Graphics()
 	m_lightShader = nullptr;
 	m_light = nullptr;
 	m_bitmap = nullptr;
+	m_sprite = nullptr;
 
 	m_multiLightShader = 0;
 	for (int i = 0; i < NUM_LIGHTS; ++i)
@@ -164,11 +165,36 @@ bool Graphics::Initialize(int width, int height, HWND hwnd)
 		return false;
 	}
 
+	m_sprite = new Sprite{};
+	if (!m_sprite)
+	{
+		return false;
+	}
+
+	{
+		std::vector<std::string> spriteFrames = { "Textures/SpriteA.jpg", "Textures/SpriteB.jpg", "Textures/SpriteC.jpg", "Textures/SpriteD.jpg" };
+		float cycleTimeMs = 200.0f;
+
+		result = m_sprite->Initialize(m_direct3D->GetDevice(), m_direct3D->GetDeviceContext(), width, height, spriteFrames, cycleTimeMs, 128, 128);
+		if (!result)
+		{
+			MessageBox(hwnd, "Could not initialize the sprite object.", "Error", MB_OK);
+			return false;
+		}
+	}
+
 	return true;
 }
 
 void Graphics::Shutdown()
 {
+	if (m_sprite)
+	{
+		m_sprite->Shutdown();
+		delete m_sprite;
+		m_sprite = nullptr;
+	}
+
 	if (m_bitmap)
 	{
 		m_bitmap->Shutdown();
@@ -233,19 +259,19 @@ void Graphics::Shutdown()
 	}
 }
 
-bool Graphics::Frame()
+bool Graphics::Frame(float frameTime)
 {
 	// Fixed increments in rotation of model
-	m_rotationY += 0.03f;
+	m_rotationY += 3.0f * (frameTime / 1000);
 	if (m_rotationY > XM_2PI)
 	{
 		m_rotationY -= XM_2PI;
 	}
 
-	return Render();
+	return Render(frameTime);
 }
 
-bool Graphics::Render()
+bool Graphics::Render(float frameTime)
 {
 	XMMATRIX worldMatrix, viewMatrix, projectionMatrix, orthoMatrix, baseViewMatrix;
 	bool result;
@@ -304,6 +330,19 @@ bool Graphics::Render()
 	}
 
 	result = m_textureShader->Render(m_direct3D->GetDeviceContext(), m_bitmap->GetIndexCount(), XMMatrixIdentity(), baseViewMatrix, orthoMatrix, m_bitmap->GetTexture());
+	if (!result)
+	{
+		return false;
+	}
+
+	// Show sprite
+	result = m_sprite->Render(m_direct3D->GetDeviceContext(), 600, 50, frameTime);
+	if (!result)
+	{
+		return false;
+	}
+
+	result = m_textureShader->Render(m_direct3D->GetDeviceContext(), m_sprite->GetIndexCount(), XMMatrixIdentity(), baseViewMatrix, orthoMatrix, m_sprite->GetTexture());
 	if (!result)
 	{
 		return false;
