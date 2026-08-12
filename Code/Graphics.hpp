@@ -14,6 +14,9 @@
 #include "MultiLightShader.hpp"
 #include "Bitmap.hpp"
 #include "Sprite.hpp"
+#include "Font.hpp"
+#include "FontShader.hpp"
+#include "Text.hpp"
 
 // Global rendering constants
 const bool FULL_SCREEN = false;
@@ -51,6 +54,11 @@ private:
 	TextureShader* m_textureShader;
 	Bitmap* m_bitmap;
 	Sprite* m_sprite;
+
+	Font* m_font;
+	FontShader* m_fontShader;
+	Text* m_text;
+	int m_rotationTextIndex;
 
 	float m_rotationY;
 };

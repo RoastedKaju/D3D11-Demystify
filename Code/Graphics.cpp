@@ -1,6 +1,9 @@
 #include "Graphics.hpp"
 #include "Utils.hpp"
 
+#include <sstream>
+#include <iomanip>
+
 Graphics::Graphics()
 {
 	m_direct3D = 0;
@@ -12,6 +15,10 @@ Graphics::Graphics()
 	m_light = nullptr;
 	m_bitmap = nullptr;
 	m_sprite = nullptr;
+	m_font = nullptr;
+	m_fontShader = nullptr;
+	m_text = nullptr;
+	m_rotationTextIndex = -1;
 
 	m_multiLightShader = 0;
 	for (int i = 0; i < NUM_LIGHTS; ++i)
@@ -183,11 +190,81 @@ bool Graphics::Initialize(int width, int height, HWND hwnd)
 		}
 	}
 
+	m_font = new Font{};
+	if (!m_font)
+	{
+		return false;
+	}
+
+	result = m_font->Initialize(m_direct3D->GetDevice(), m_direct3D->GetDeviceContext(), "Fonts/SpaceGrotesk-Regular.ttf", 24.0f);
+	if (!result)
+	{
+		m_font->Shutdown();
+		delete m_font;
+		m_font = 0;
+	}
+	else
+	{
+		m_fontShader = new FontShader{};
+		if (!m_fontShader)
+		{
+			return false;
+		}
+
+		result = m_fontShader->Initialize(m_direct3D->GetDevice(), hwnd);
+		if (!result)
+		{
+			MessageBox(hwnd, "Could not initialize the font shader object.", "Error", MB_OK);
+			return false;
+		}
+
+		m_text = new Text{};
+		if (!m_text)
+		{
+			return false;
+		}
+
+		result = m_text->Initialize(m_direct3D->GetDevice(), m_font, width, height);
+		if (!result)
+		{
+			MessageBox(hwnd, "Could not initialize the text object.", "Error", MB_OK);
+			return false;
+		}
+
+		// A static label and a live one that Render() updates every
+		// frame - showing both the simple case (set once) and the useful
+		// case (an FPS-counter-style readout) side by side. maxLength=32
+		// reserves room for the live one to be updated with longer
+		// strings later without resizing anything.
+		m_text->AddSentence(m_direct3D->GetDevice(), m_direct3D->GetDeviceContext(), "DX11 Tutorial Series", 32, 20, 20, 1.0f, 1.0f, 1.0f);
+		m_rotationTextIndex = m_text->AddSentence(m_direct3D->GetDevice(), m_direct3D->GetDeviceContext(), "Rotation: 0.0", 32, 20, 45, 1.0f, 1.0f, 0.0f);
+	}
 	return true;
 }
 
 void Graphics::Shutdown()
 {
+	if (m_text)
+	{
+		m_text->Shutdown();
+		delete m_text;
+		m_text = nullptr;
+	}
+
+	if (m_fontShader)
+	{
+		m_fontShader->Shutdown();
+		delete m_fontShader;
+		m_fontShader = nullptr;
+	}
+
+	if (m_font)
+	{
+		m_font->Shutdown();
+		delete m_font;
+		m_font = 0;
+	}
+
 	if (m_sprite)
 	{
 		m_sprite->Shutdown();
@@ -346,6 +423,27 @@ bool Graphics::Render(float frameTime)
 	if (!result)
 	{
 		return false;
+	}
+
+	// Text rendering
+	if (m_text)
+	{
+		if (m_rotationTextIndex >= 0)
+		{
+			std::ostringstream oss;
+			oss << "Rotation: " << std::fixed << std::setprecision(2) << m_rotationY;
+			m_text->UpdateSentence(m_direct3D->GetDeviceContext(), m_rotationTextIndex, oss.str());
+		}
+
+		m_direct3D->TurnOnAlphaBlending();
+
+		result = m_text->Render(m_direct3D->GetDeviceContext(), m_fontShader, XMMatrixIdentity(), baseViewMatrix, orthoMatrix);
+		if (!result)
+		{
+			return false;
+		}
+
+		m_direct3D->TurnOffAlphaBlending();
 	}
 
 	// Turn back the depth test

@@ -1,0 +1,26 @@
+Texture2D shaderTexture;
+SamplerState SampleType;
+
+cbuffer PixelBuffer
+{
+    float4 pixelColor;
+};
+
+struct PixelInputType
+{
+    float4 position : SV_POSITION;
+    float2 tex : TEXCOORD0;
+};
+
+float4 FontPixelShader(PixelInputType input) : SV_TARGET
+{
+    float4 color;
+
+    // A font atlas is conventionally white glyph shapes on a transparent
+    // background - sampling it gives a per-pixel coverage mask (near-white
+    // where a glyph covers this pixel, alpha near 0 where it doesn't).
+    // Multiplying by pixelColor tints that white glyph to whatever color
+    color = shaderTexture.Sample(SampleType, input.tex) * pixelColor;
+
+    return color;
+}

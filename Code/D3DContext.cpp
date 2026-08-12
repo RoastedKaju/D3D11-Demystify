@@ -10,6 +10,8 @@ D3DContext::D3DContext()
 	m_depthStencilState = 0;
 	m_depthStencilView = 0;
 	m_rasterState = 0;
+	m_alphaEnableBlendingState = 0;
+	m_alphaDisableBlendingState = 0;
 }
 
 D3DContext::~D3DContext()
@@ -36,6 +38,7 @@ bool D3DContext::Initialize(int width, int height, bool vsync, HWND hwnd, bool f
 	D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc;
 	D3D11_RASTERIZER_DESC rasterDesc;
 	D3D11_VIEWPORT viewport;
+	D3D11_BLEND_DESC blendStateDescription;
 	float fieldOfView, screenAspect;
 
 	m_vSyncEnabled = vsync;
@@ -240,6 +243,32 @@ bool D3DContext::Initialize(int width, int height, bool vsync, HWND hwnd, bool f
 
 	m_deviceContext->RSSetState(m_rasterState);
 
+	// Blend states
+	ZeroMemory(&blendStateDescription, sizeof(D3D11_BLEND_DESC));
+
+	blendStateDescription.RenderTarget[0].BlendEnable = TRUE;
+	blendStateDescription.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
+	blendStateDescription.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+	blendStateDescription.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+	blendStateDescription.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+	blendStateDescription.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
+	blendStateDescription.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	blendStateDescription.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+
+	result = m_device->CreateBlendState(&blendStateDescription, &m_alphaEnableBlendingState);
+	if (FAILED(result))
+	{
+		return false;
+	}
+
+	blendStateDescription.RenderTarget[0].BlendEnable = FALSE;
+
+	result = m_device->CreateBlendState(&blendStateDescription, &m_alphaDisableBlendingState);
+	if (FAILED(result))
+	{
+		return false;
+	}
+
 	// Viewport - maps clip-space
 	// Without this nothing would know how to fill the window
 	viewport.Width = (float)width;
@@ -277,6 +306,8 @@ void D3DContext::Shutdown()
 	}
 
 	if (m_rasterState) { m_rasterState->Release(); m_rasterState = 0; }
+	if (m_alphaEnableBlendingState) { m_alphaEnableBlendingState->Release(); m_alphaEnableBlendingState = 0; }
+	if (m_alphaDisableBlendingState) { m_alphaDisableBlendingState->Release(); m_alphaDisableBlendingState = 0; }
 	if (m_depthStencilView) { m_depthStencilView->Release(); m_depthStencilView = 0; }
 	if (m_depthStencilState) { m_depthStencilState->Release(); m_depthStencilState = 0; }
 	if (m_depthStencilBuffer) { m_depthStencilBuffer->Release(); m_depthStencilBuffer = 0; }
@@ -349,4 +380,16 @@ void D3DContext::TurnZBufferOn()
 void D3DContext::TurnZBufferOff()
 {
 	m_deviceContext->OMSetDepthStencilState(m_depthDisabledStencilState, 1);
+}
+
+void D3DContext::TurnOnAlphaBlending()
+{
+	float blendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+	m_deviceContext->OMSetBlendState(m_alphaEnableBlendingState, blendFactor, 0xffffffff);
+}
+
+void D3DContext::TurnOffAlphaBlending()
+{
+	float blendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+	m_deviceContext->OMSetBlendState(m_alphaDisableBlendingState, blendFactor, 0xffffffff);
 }
