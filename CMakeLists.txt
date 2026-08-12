@@ -26,6 +26,8 @@ set_property(TARGET ${PROJECT_NAME} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CM
 
 # Tiny OBJ
 target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_SOURCE_DIR}/External/TinyObjLoader")
+# True type
+target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_SOURCE_DIR}/External/TrueType")
 
 # Compile definitions
 target_compile_definitions(${PROJECT_NAME} PRIVATE NOMINMAX)
