@@ -17,6 +17,7 @@
 #include "Font.hpp"
 #include "FontShader.hpp"
 #include "Text.hpp"
+#include "FPS.hpp"
 
 // Global rendering constants
 const bool FULL_SCREEN = false;
@@ -59,6 +60,9 @@ private:
 	FontShader* m_fontShader;
 	Text* m_text;
 	int m_rotationTextIndex;
+
+	FPS* m_FPS;
+	int m_FPSTextIndex;
 
 	float m_rotationY;
 };

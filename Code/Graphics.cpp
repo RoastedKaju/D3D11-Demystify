@@ -19,6 +19,8 @@ Graphics::Graphics()
 	m_fontShader = nullptr;
 	m_text = nullptr;
 	m_rotationTextIndex = -1;
+	m_FPS = nullptr;
+	m_FPSTextIndex = -1;
 
 	m_multiLightShader = 0;
 	for (int i = 0; i < NUM_LIGHTS; ++i)
@@ -236,14 +238,30 @@ bool Graphics::Initialize(int width, int height, HWND hwnd)
 		// case (an FPS-counter-style readout) side by side. maxLength=32
 		// reserves room for the live one to be updated with longer
 		// strings later without resizing anything.
+		m_FPSTextIndex = m_text->AddSentence(m_direct3D->GetDevice(), m_direct3D->GetDeviceContext(), "FPS: 00", 32, 20, 0, 0.0f, 1.0f, 0.0f);
 		m_text->AddSentence(m_direct3D->GetDevice(), m_direct3D->GetDeviceContext(), "DX11 Tutorial Series", 32, 20, 20, 1.0f, 1.0f, 1.0f);
 		m_rotationTextIndex = m_text->AddSentence(m_direct3D->GetDevice(), m_direct3D->GetDeviceContext(), "Rotation: 0.0", 32, 20, 45, 1.0f, 1.0f, 0.0f);
 	}
+
+	m_FPS = new FPS{};
+	if (!m_FPS)
+	{
+		return false;
+	}
+
+	m_FPS->Initialize();
+
 	return true;
 }
 
 void Graphics::Shutdown()
 {
+	if (m_FPS)
+	{
+		delete m_FPS;
+		m_FPS = nullptr;
+	}
+
 	if (m_text)
 	{
 		m_text->Shutdown();
@@ -345,6 +363,8 @@ bool Graphics::Frame(float frameTime)
 		m_rotationY -= XM_2PI;
 	}
 
+	m_FPS->Frame();
+
 	return Render(frameTime);
 }
 
@@ -433,6 +453,14 @@ bool Graphics::Render(float frameTime)
 			std::ostringstream oss;
 			oss << "Rotation: " << std::fixed << std::setprecision(2) << m_rotationY;
 			m_text->UpdateSentence(m_direct3D->GetDeviceContext(), m_rotationTextIndex, oss.str());
+		}
+
+		// Update FPS value
+		if(m_FPSTextIndex >= 0)
+		{
+			std::ostringstream oss;
+			oss << "FPS: " << m_FPS->GetFPS();
+			m_text->UpdateSentence(m_direct3D->GetDeviceContext(), m_FPSTextIndex, oss.str());
 		}
 
 		m_direct3D->TurnOnAlphaBlending();

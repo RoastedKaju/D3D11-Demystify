@@ -19,7 +19,7 @@ target_sources(${PROJECT_NAME} PRIVATE ${SRC_FILES})
 # D3D11       - Direct3D 11 runtime API (Devices, Contexts, Resources)
 # DXGI        - DirectX Graphics Infrastructure (Swapchains, Adapters, Output)
 # D3DCOMPILER - HLSL Shader Compiler
-target_link_libraries(${PROJECT_NAME} PRIVATE d3d11 dxgi d3dcompiler)
+target_link_libraries(${PROJECT_NAME} PRIVATE d3d11 dxgi d3dcompiler winmm)
 
 # When you hit F5 this makes the working directory where .EXE lives
 set_property(TARGET ${PROJECT_NAME} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
