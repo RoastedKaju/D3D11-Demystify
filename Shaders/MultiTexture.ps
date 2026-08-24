@@ -1,0 +1,38 @@
+// An HLSL array of Texture2D declares consecutive texture slots (t0, t1)
+// rather than one bigger texture - shaderTexture[0] and shaderTexture[1]
+// are two completely independent textures, bound from C++ via a single
+// PSSetShaderResources(0, 2, ...) call with an array of 2 SRV pointers.
+
+Texture2D shaderTexture[2];
+SamplerState SampleType;
+
+struct PixelInputType
+{
+    float4 position : SV_POSITION;
+    float2 tex : TEXCOORD0;
+};
+
+float4 MultiTexturePixelShader(PixelInputType input) : SV_TARGET
+{
+    float4 color1;
+    float4 color2;
+    float4 blendColor;
+
+    color1 = shaderTexture[0].Sample(SampleType, input.tex);
+    color2 = shaderTexture[1].Sample(SampleType, input.tex);
+
+    // Modulate (multiply) blend: each channel of the result is the
+    // product of both textures' channels. Since texture values are
+    // typically well under 1.0, a straight multiply tends to darken the
+    // result more than you'd usually want (0.7 * 0.7 = 0.49, noticeably
+    // dimmer than either source) - multiplying by 2.0 here is the classic
+    // compensation, roughly restoring the blended result to a similar
+    // overall brightness as the inputs.
+    blendColor = color1 * color2 * 2.0f;
+
+    // The *2.0 compensation can push a channel back over 1.0 depending on
+    // the two textures involved - clamp before returning.
+    blendColor = saturate(blendColor);
+
+    return blendColor;
+}

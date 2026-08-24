@@ -21,6 +21,8 @@ Graphics::Graphics()
 	m_rotationTextIndex = -1;
 	m_FPS = nullptr;
 	m_FPSTextIndex = -1;
+	m_multiTextureShader = nullptr;
+	m_multiTextureTriangle = nullptr;
 
 	m_multiLightShader = 0;
 	for (int i = 0; i < NUM_LIGHTS; ++i)
@@ -239,7 +241,7 @@ bool Graphics::Initialize(int width, int height, HWND hwnd)
 		// reserves room for the live one to be updated with longer
 		// strings later without resizing anything.
 		m_FPSTextIndex = m_text->AddSentence(m_direct3D->GetDevice(), m_direct3D->GetDeviceContext(), "FPS: 00", 32, 20, 0, 0.0f, 1.0f, 0.0f);
-		m_text->AddSentence(m_direct3D->GetDevice(), m_direct3D->GetDeviceContext(), "DX11 Tutorial Series", 32, 20, 20, 1.0f, 1.0f, 1.0f);
+		m_text->AddSentence(m_direct3D->GetDevice(), m_direct3D->GetDeviceContext(), "DirectX 11 Renderer", 32, 20, 20, 1.0f, 1.0f, 1.0f);
 		m_rotationTextIndex = m_text->AddSentence(m_direct3D->GetDevice(), m_direct3D->GetDeviceContext(), "Rotation: 0.0", 32, 20, 45, 1.0f, 1.0f, 0.0f);
 	}
 
@@ -251,11 +253,53 @@ bool Graphics::Initialize(int width, int height, HWND hwnd)
 
 	m_FPS->Initialize();
 
+	// Multi-texture example
+	{
+		m_multiTextureShader = new MultiTextureShader{};
+		if (!m_multiTextureShader)
+		{
+			return false;
+		}
+		result = m_multiTextureShader->Initialize(m_direct3D->GetDevice(), hwnd);
+		if (!result)
+		{
+			MessageBox(hwnd, "Could not initialize the multi-texture shader object.", "Error", MB_OK);
+			return false;
+		}
+
+		m_multiTextureTriangle = new MultiTextureTriangle{};
+		if (!m_multiTextureTriangle)
+		{
+			return false;
+		}
+
+		result = m_multiTextureTriangle->Initialize(m_direct3D->GetDevice(), m_direct3D->GetDeviceContext(), "Textures/BrickWall.jpg", "Textures/Dirt.jpg");
+		if (!result)
+		{
+			MessageBox(hwnd, "Could not initialize the multi-texture triangle object.", "Error", MB_OK);
+			return false;
+		}
+	}
+
 	return true;
 }
 
 void Graphics::Shutdown()
 {
+	if (m_multiTextureTriangle)
+	{
+		m_multiTextureTriangle->Shutdown();
+		delete m_multiTextureTriangle;
+		m_multiTextureTriangle = nullptr;
+	}
+
+	if (m_multiTextureShader)
+	{
+		m_multiTextureShader->Shutdown();
+		delete m_multiTextureShader;
+		m_multiTextureShader = nullptr;
+	}
+
 	if (m_FPS)
 	{
 		delete m_FPS;
@@ -416,6 +460,19 @@ bool Graphics::Render(float frameTime)
 		return false;
 	}
 
+	// Triangle rendering
+	scaleMatrix = XMMatrixScaling(1.0f, 1.0f, 1.0f);
+	rotationMatrix = XMMatrixRotationY(XM_PI);
+	translationMatrix = XMMatrixTranslation(-3.0f, -2.0f, 3.0f);
+	worldMatrix = scaleMatrix * rotationMatrix * translationMatrix;
+
+	m_multiTextureTriangle->Render(m_direct3D->GetDeviceContext());
+	result = m_multiTextureShader->Render(m_direct3D->GetDeviceContext(), m_multiTextureTriangle->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_multiTextureTriangle->GetTextureA(), m_multiTextureTriangle->GetTextureB());
+	if (!result)
+	{
+		return false;
+	}
+
 	// 2nd Pass UI
 	// Depth testing has to be off
 	m_direct3D->TurnZBufferOff();
@@ -456,7 +513,7 @@ bool Graphics::Render(float frameTime)
 		}
 
 		// Update FPS value
-		if(m_FPSTextIndex >= 0)
+		if (m_FPSTextIndex >= 0)
 		{
 			std::ostringstream oss;
 			oss << "FPS: " << m_FPS->GetFPS();

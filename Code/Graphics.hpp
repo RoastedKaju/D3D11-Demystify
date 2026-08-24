@@ -18,6 +18,8 @@
 #include "FontShader.hpp"
 #include "Text.hpp"
 #include "FPS.hpp"
+#include "MultiTextureShader.hpp"
+#include "MultiTextureTriangle.hpp"
 
 // Global rendering constants
 const bool FULL_SCREEN = false;
@@ -63,6 +65,9 @@ private:
 
 	FPS* m_FPS;
 	int m_FPSTextIndex;
+
+	MultiTextureShader* m_multiTextureShader;
+	MultiTextureTriangle* m_multiTextureTriangle;
 
 	float m_rotationY;
 };
