@@ -260,7 +260,7 @@ bool Graphics::Initialize(int width, int height, HWND hwnd)
 		{
 			return false;
 		}
-		result = m_multiTextureShader->Initialize(m_direct3D->GetDevice(), hwnd);
+		result = m_multiTextureShader->Initialize(m_direct3D->GetDevice(), hwnd, "Shaders/Lightmap.vs", "Shaders/Lightmap.ps");
 		if (!result)
 		{
 			MessageBox(hwnd, "Could not initialize the multi-texture shader object.", "Error", MB_OK);
@@ -273,7 +273,7 @@ bool Graphics::Initialize(int width, int height, HWND hwnd)
 			return false;
 		}
 
-		result = m_multiTextureTriangle->Initialize(m_direct3D->GetDevice(), m_direct3D->GetDeviceContext(), "Textures/BrickWall.jpg", "Textures/Dirt.jpg");
+		result = m_multiTextureTriangle->Initialize(m_direct3D->GetDevice(), m_direct3D->GetDeviceContext(), "Textures/BrickWall.jpg", "Textures/Lightmap.jpg");
 		if (!result)
 		{
 			MessageBox(hwnd, "Could not initialize the multi-texture triangle object.", "Error", MB_OK);

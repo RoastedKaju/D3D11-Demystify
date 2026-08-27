@@ -27,12 +27,10 @@ PixelInputType VertexShaderEntry(VertexInputType input)
     output.position = mul(output.position, viewMatrix);
     output.position = mul(output.position, projectionMatrix);
 
-    // Both textures are sampled with this SAME set of UVs - the simplest
-    // form of multitexturing. (A more elaborate version could carry a
-    // second, independent UV set per texture - useful for things like a
-    // detail texture tiled at a different scale than the base map - but
-    // that's a bigger change to the vertex format; this tutorial is about
-    // the blending idea itself.)
+    // Same shared UV set drives both samples. A light map is normally
+    // authored specifically for this model's existing UV layout (baked to
+    // match it exactly), so there's no need for a second UV channel the
+    // way there might be for, say, a tiled detail texture.
     output.tex = input.tex;
 
     return output;

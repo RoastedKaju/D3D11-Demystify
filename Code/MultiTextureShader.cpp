@@ -15,9 +15,9 @@ MultiTextureShader::~MultiTextureShader()
 
 }
 
-bool MultiTextureShader::Initialize(ID3D11Device* device, HWND hwnd)
+bool MultiTextureShader::Initialize(ID3D11Device* device, HWND hwnd, const char* vertexShaderPath, const char* pixelShaderPath)
 {
-	return InitializeShader(device, hwnd, "Shaders/MultiTexture.vs", "Shaders/MultiTexture.ps");
+	return InitializeShader(device, hwnd, vertexShaderPath, pixelShaderPath);
 }
 
 void MultiTextureShader::Shutdown()
@@ -55,7 +55,7 @@ bool MultiTextureShader::InitializeShader(ID3D11Device* device, HWND hwnd, const
 	vertexShaderBuffer = 0;
 	pixelShaderBuffer = 0;
 
-	result = D3DCompileFromFile(Utils::ConvertToWChar(vsFilename), NULL, NULL, "MultiTextureVertexShader", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, &vertexShaderBuffer, &errorMessage);
+	result = D3DCompileFromFile(Utils::ConvertToWChar(vsFilename), NULL, NULL, "VertexShaderEntry", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, &vertexShaderBuffer, &errorMessage);
 	if (FAILED(result))
 	{
 		if (errorMessage) { OutputShaderErrorMessage(errorMessage, hwnd, vsFilename); }
@@ -63,7 +63,7 @@ bool MultiTextureShader::InitializeShader(ID3D11Device* device, HWND hwnd, const
 		return false;
 	}
 
-	result = D3DCompileFromFile(Utils::ConvertToWChar(psFilename), NULL, NULL, "MultiTexturePixelShader", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, &pixelShaderBuffer, &errorMessage);
+	result = D3DCompileFromFile(Utils::ConvertToWChar(psFilename), NULL, NULL, "PixelShaderEntry", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0, &pixelShaderBuffer, &errorMessage);
 	if (FAILED(result))
 	{
 		if (errorMessage) { OutputShaderErrorMessage(errorMessage, hwnd, psFilename); }

@@ -1,0 +1,33 @@
+Texture2D shaderTexture[2];   // [0] = base color map, [1] = light map
+SamplerState SampleType;
+
+struct PixelInputType
+{
+    float4 position : SV_POSITION;
+    float2 tex : TEXCOORD0;
+};
+
+float4 PixelShaderEntry(PixelInputType input) : SV_TARGET
+{
+    float4 baseColor;
+    float4 lightMapColor;
+    float4 finalColor;
+
+    baseColor = shaderTexture[0].Sample(SampleType, input.tex);
+    lightMapColor = shaderTexture[1].Sample(SampleType, input.tex);
+
+    // Straight multiply - deliberately WITHOUT Tutorial 17's *2.0
+    // brightening compensation. A light map is authored to directly
+    // represent brightness: mostly light/white where a surface receives
+    // full light, darkening toward black in baked-in shadow areas. It
+    // should darken the base color by exactly that much, not less - the
+    // *2.0 trick from generic multitexturing would partially undo the
+    // very effect a light map exists to produce. (This is also why, if
+    // you test this with two ordinary, non-lightmap textures reused for
+    // both slots, the result looks noticeably DIMMER than Tutorial 17's -
+    // that's expected here, not a bug; a real light map is mostly bright,
+    // so it wouldn't cause the same darkening a second "normal" texture does.)
+    finalColor = baseColor * lightMapColor;
+
+    return finalColor;
+}
