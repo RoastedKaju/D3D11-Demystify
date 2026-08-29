@@ -23,6 +23,7 @@ Graphics::Graphics()
 	m_FPSTextIndex = -1;
 	m_multiTextureShader = nullptr;
 	m_multiTextureTriangle = nullptr;
+	m_quadMesh = nullptr;
 
 	m_multiLightShader = 0;
 	for (int i = 0; i < NUM_LIGHTS; ++i)
@@ -279,6 +280,20 @@ bool Graphics::Initialize(int width, int height, HWND hwnd)
 			MessageBox(hwnd, "Could not initialize the multi-texture triangle object.", "Error", MB_OK);
 			return false;
 		}
+
+		// Quad mesh
+		m_quadMesh = new QuadMesh{};
+		if (!m_quadMesh)
+		{
+			return false;
+		}
+
+		result = m_quadMesh->Initialize(m_direct3D->GetDevice(), m_direct3D->GetDeviceContext(), "Textures/BrickWall.jpg", "Textures/Dirt.jpg", "Textures/Lightmap.jpg");
+		if (!result)
+		{
+			MessageBox(hwnd, "Could not initialize quad mesh object.", "Error", MB_OK);
+			return false;
+		}
 	}
 
 	return true;
@@ -286,6 +301,13 @@ bool Graphics::Initialize(int width, int height, HWND hwnd)
 
 void Graphics::Shutdown()
 {
+	if (m_quadMesh)
+	{
+		m_quadMesh->Shutdown();
+		delete m_quadMesh;
+		m_quadMesh = nullptr;
+	}
+
 	if (m_multiTextureTriangle)
 	{
 		m_multiTextureTriangle->Shutdown();
@@ -468,6 +490,19 @@ bool Graphics::Render(float frameTime)
 
 	m_multiTextureTriangle->Render(m_direct3D->GetDeviceContext());
 	result = m_multiTextureShader->Render(m_direct3D->GetDeviceContext(), m_multiTextureTriangle->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_multiTextureTriangle->GetTextureA(), m_multiTextureTriangle->GetTextureB());
+	if (!result)
+	{
+		return false;
+	}
+
+	// Quad mesh rendering
+	scaleMatrix = XMMatrixScaling(1.0f, 1.0f, 1.0f);
+	rotationMatrix = XMMatrixRotationY(XM_PI);
+	translationMatrix = XMMatrixTranslation(3.0f, -2.0f, 3.0f);
+	worldMatrix = scaleMatrix * rotationMatrix * translationMatrix;
+
+	m_quadMesh->Render(m_direct3D->GetDeviceContext());
+	result = m_multiTextureShader->Render(m_direct3D->GetDeviceContext(), m_quadMesh->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_quadMesh->GetTextureA(), m_quadMesh->GetTextureB());
 	if (!result)
 	{
 		return false;

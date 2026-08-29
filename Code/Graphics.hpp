@@ -20,6 +20,7 @@
 #include "FPS.hpp"
 #include "MultiTextureShader.hpp"
 #include "MultiTextureTriangle.hpp"
+#include "QuadMesh.hpp"
 
 // Global rendering constants
 const bool FULL_SCREEN = false;
@@ -68,6 +69,8 @@ private:
 
 	MultiTextureShader* m_multiTextureShader;
 	MultiTextureTriangle* m_multiTextureTriangle;
+
+	QuadMesh* m_quadMesh;
 
 	float m_rotationY;
 };
