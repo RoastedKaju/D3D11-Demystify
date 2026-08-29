@@ -20,6 +20,7 @@
 #include "FPS.hpp"
 #include "MultiTextureShader.hpp"
 #include "MultiTextureTriangle.hpp"
+#include "AlphaMapShader.hpp"
 #include "QuadMesh.hpp"
 
 // Global rendering constants
@@ -70,6 +71,7 @@ private:
 	MultiTextureShader* m_multiTextureShader;
 	MultiTextureTriangle* m_multiTextureTriangle;
 
+	AlphaMapShader* m_alphaMapShader;
 	QuadMesh* m_quadMesh;
 
 	float m_rotationY;

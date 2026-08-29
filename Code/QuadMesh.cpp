@@ -185,8 +185,9 @@ bool QuadMesh::LoadTextures(ID3D11Device* device, ID3D11DeviceContext* deviceCon
 {
 	m_textureA = new Texture{};
 	m_textureB = new Texture{};
+	m_textureAlpha = new Texture{};
 
-	if (!m_textureA || !m_textureB)
+	if (!m_textureA || !m_textureB || !m_textureAlpha)
 	{
 		ReleaseTextures();
 		return false;
@@ -201,6 +202,14 @@ bool QuadMesh::LoadTextures(ID3D11Device* device, ID3D11DeviceContext* deviceCon
 	}
 
 	result = m_textureB->Initialize(device, deviceContext, textureB);
+
+	if (!result)
+	{
+		ReleaseTextures();
+		return false;
+	}
+
+	result = m_textureAlpha->Initialize(device, deviceContext, textureAlpha);
 
 	if (!result)
 	{

@@ -23,6 +23,7 @@ Graphics::Graphics()
 	m_FPSTextIndex = -1;
 	m_multiTextureShader = nullptr;
 	m_multiTextureTriangle = nullptr;
+	m_alphaMapShader = nullptr;
 	m_quadMesh = nullptr;
 
 	m_multiLightShader = 0;
@@ -281,14 +282,27 @@ bool Graphics::Initialize(int width, int height, HWND hwnd)
 			return false;
 		}
 
-		// Quad mesh
+		// Quad mesh and Alpha mapping
+		m_alphaMapShader = new AlphaMapShader{};
+		if (!m_alphaMapShader)
+		{
+			return false;
+		}
+		result = m_alphaMapShader->Initialize(m_direct3D->GetDevice(), hwnd, "Shaders/AlphaMap.vs", "Shaders/AlphaMap.ps");
+		if (!result)
+		{
+			MessageBox(hwnd, "Could not initialize the Alpha Map shader object.", "Error", MB_OK);
+			return false;
+		}
+
+
 		m_quadMesh = new QuadMesh{};
 		if (!m_quadMesh)
 		{
 			return false;
 		}
 
-		result = m_quadMesh->Initialize(m_direct3D->GetDevice(), m_direct3D->GetDeviceContext(), "Textures/BrickWall.jpg", "Textures/Dirt.jpg", "Textures/Lightmap.jpg");
+		result = m_quadMesh->Initialize(m_direct3D->GetDevice(), m_direct3D->GetDeviceContext(), "Textures/BrickWall.jpg", "Textures/Dirt.jpg", "Textures/Alpha.jpg");
 		if (!result)
 		{
 			MessageBox(hwnd, "Could not initialize quad mesh object.", "Error", MB_OK);
@@ -306,6 +320,13 @@ void Graphics::Shutdown()
 		m_quadMesh->Shutdown();
 		delete m_quadMesh;
 		m_quadMesh = nullptr;
+	}
+
+	if (m_alphaMapShader)
+	{
+		m_alphaMapShader->Shutdown();
+		delete m_alphaMapShader;
+		m_alphaMapShader = nullptr;
 	}
 
 	if (m_multiTextureTriangle)
@@ -502,7 +523,7 @@ bool Graphics::Render(float frameTime)
 	worldMatrix = scaleMatrix * rotationMatrix * translationMatrix;
 
 	m_quadMesh->Render(m_direct3D->GetDeviceContext());
-	result = m_multiTextureShader->Render(m_direct3D->GetDeviceContext(), m_quadMesh->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_quadMesh->GetTextureA(), m_quadMesh->GetTextureB());
+	result = m_alphaMapShader->Render(m_direct3D->GetDeviceContext(), m_quadMesh->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_quadMesh->GetTextureA(), m_quadMesh->GetTextureB(), m_quadMesh->GetTextureAlpha());
 	if (!result)
 	{
 		return false;
