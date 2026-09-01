@@ -5,23 +5,7 @@
 #include <DirectXMath.h>
 
 #include "D3DContext.hpp"
-#include "Camera.hpp"
-#include "Model.hpp"
-#include "ColorShader.hpp"
-#include "TextureShader.hpp"
-#include "LightShader.hpp"
-#include "Light.hpp"
-#include "MultiLightShader.hpp"
-#include "Bitmap.hpp"
-#include "Sprite.hpp"
-#include "Font.hpp"
-#include "FontShader.hpp"
-#include "Text.hpp"
-#include "FPS.hpp"
-#include "MultiTextureShader.hpp"
-#include "MultiTextureTriangle.hpp"
-#include "AlphaMapShader.hpp"
-#include "QuadMesh.hpp"
+#include "Scene.hpp"
 
 // Global rendering constants
 const bool FULL_SCREEN = false;
@@ -47,32 +31,5 @@ private:
 
 private:
 	D3DContext* m_direct3D;
-	Camera* m_camera;
-	Model* m_model;
-	ColorShader* m_colorShader;
-	LightShader* m_lightShader;
-	Light* m_light;
-
-	MultiLightShader* m_multiLightShader;
-	Light* m_lights[NUM_LIGHTS]; // 4 lights
-
-	TextureShader* m_textureShader;
-	Bitmap* m_bitmap;
-	Sprite* m_sprite;
-
-	Font* m_font;
-	FontShader* m_fontShader;
-	Text* m_text;
-	int m_rotationTextIndex;
-
-	FPS* m_FPS;
-	int m_FPSTextIndex;
-
-	MultiTextureShader* m_multiTextureShader;
-	MultiTextureTriangle* m_multiTextureTriangle;
-
-	AlphaMapShader* m_alphaMapShader;
-	QuadMesh* m_quadMesh;
-
-	float m_rotationY;
+	Scene* m_scene;
 };
