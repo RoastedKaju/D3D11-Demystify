@@ -1,0 +1,62 @@
+Texture2D shaderTexture;      // base color/albedo
+Texture2D normalMapTexture;   // per-pixel surface detail
+SamplerState SampleType;
+
+cbuffer LightBuffer
+{
+    float4 diffuseColor;
+    float3 lightDirection;
+    float padding;
+};
+
+struct PixelInputType
+{
+    float4 position : SV_POSITION;
+    float2 tex : TEXCOORD0;
+    float3 normal : NORMAL;
+    float3 tangent : TANGENT;
+    float3 binormal : BINORMAL;
+};
+
+float4 NormalMapPixelShader(PixelInputType input) : SV_TARGET
+{
+    float4 textureColor;
+    float4 bumpMap;
+    float3 bumpNormal;
+    float3 lightDir;
+    float lightIntensity;
+    float4 color;
+
+    textureColor = shaderTexture.Sample(SampleType, input.tex);
+
+    // Normal maps store an XYZ direction packed into RGB's [0,1] color
+    // range (since that's what a texture can hold) - unpack back to the
+    // actual [-1,1] direction range before using it as a normal. A
+    // "neutral"/flat normal map pixel is (0.5, 0.5, 1.0), which unpacks to
+    // (0, 0, 1) - straight out of the surface, i.e. "no bump here".
+    bumpMap = normalMapTexture.Sample(SampleType, input.tex);
+    bumpMap = (bumpMap * 2.0f) - 1.0f;
+
+    // Reconstruct the actual world-space normal for this pixel: the
+    // sampled direction is expressed in TANGENT space (relative to the
+    // texture - +Z is "out of the surface", not "up" in the world), so
+    // rotate it into world space using tangent/binormal/normal as the
+    // basis. This is the payoff of Tutorial 20's whole tangent/binormal
+    // calculation - without it, there'd be no way to know which way
+    // "out of the surface" even points at this spot on the mesh.
+    bumpNormal = (bumpMap.x * input.tangent) + (bumpMap.y * input.binormal) + (bumpMap.z * input.normal);
+    bumpNormal = normalize(bumpNormal);
+
+    // Standard diffuse lighting from here on (Tutorial 6's math,
+    // deliberately without ambient/specular this time - same "isolate the
+    // one new idea" choice as every technique tutorial in this project),
+    // just using bumpNormal instead of the coarse per-vertex input.normal.
+    lightDir = -lightDirection;
+    lightIntensity = saturate(dot(bumpNormal, lightDir));
+
+    color = saturate(diffuseColor * lightIntensity);
+
+    color = color * textureColor;
+
+    return color;
+}

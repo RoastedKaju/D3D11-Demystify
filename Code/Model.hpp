@@ -29,6 +29,8 @@ private:
 		XMFLOAT3 position;
 		XMFLOAT2 texture;
 		XMFLOAT3 normal;
+		XMFLOAT3 tangent;
+		XMFLOAT3 binormal;
 	};
 
 	bool InitializeBuffers(ID3D11Device*, const char*);
@@ -41,6 +43,8 @@ private:
 	bool LoadModel(const char*);
 
 private:
+	static void CalculateTangentBinormal(VertexType& v0, VertexType& v1, VertexType& v2);
+
 	ID3D11Buffer* m_vertexBuffer;
 	ID3D11Buffer* m_indexBuffer;
 	int m_vertexCount;

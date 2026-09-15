@@ -168,6 +168,10 @@ bool Model::LoadTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext
 	return true;
 }
 
+/**
+* Using Tiny-Obj does not provide tangents or bi-normals we must calculate them ourselves.
+* ASSIMP on the other hand can auto-generate using the post-processing flag
+*/
 bool Model::LoadModel(const char* modelPath)
 {
 	tinyobj::ObjReaderConfig readerConfig;
@@ -225,6 +229,9 @@ bool Model::LoadModel(const char* modelPath)
 				vertex.normal = XMFLOAT3(0.0f, 1.0f, 0.0f);
 			}
 
+			vertex.tangent = XMFLOAT3(0.0f, 0.0f, 0.0f);
+			vertex.binormal = XMFLOAT3(0.0f, 0.0f, 0.0f);
+
 			m_vertices.push_back(vertex);
 		}
 	}
@@ -234,6 +241,12 @@ bool Model::LoadModel(const char* modelPath)
 		return false;
 	}
 
+	// tangent/binormal computation
+	for (size_t i = 0; i + 2 < m_vertices.size(); i += 3)
+	{
+		CalculateTangentBinormal(m_vertices[i], m_vertices[i + 1], m_vertices[i + 2]);
+	}
+
 	m_indices.resize(m_vertices.size());
 	for (size_t i = 0; i < m_indices.size(); i++)
 	{
@@ -241,6 +254,53 @@ bool Model::LoadModel(const char* modelPath)
 	}
 
 	return true;
+}
+
+void Model::CalculateTangentBinormal(VertexType& v0, VertexType& v1, VertexType& v2)
+{
+	float edge1[3], edge2[3];
+	float deltaU1, deltaV1, deltaU2, deltaV2;
+	float denominator;
+	XMFLOAT3 tangent, binormal;
+	float length;
+
+	// Two edges of the triangle, in position space.
+	edge1[0] = v1.position.x - v0.position.x;
+	edge1[1] = v1.position.y - v0.position.y;
+	edge1[2] = v1.position.z - v0.position.z;
+
+	edge2[0] = v2.position.x - v0.position.x;
+	edge2[1] = v2.position.y - v0.position.y;
+	edge2[2] = v2.position.z - v0.position.z;
+
+	// The same two edges, in UV (texture) space.
+	deltaU1 = v1.texture.x - v0.texture.x;
+	deltaV1 = v1.texture.y - v0.texture.y;
+	deltaU2 = v2.texture.x - v0.texture.x;
+	deltaV2 = v2.texture.y - v0.texture.y;
+
+	denominator = 1.0f / (deltaU1 * deltaV2 - deltaU2 * deltaV1);
+
+	tangent.x = (deltaV2 * edge1[0] - deltaV1 * edge2[0]) * denominator;
+	tangent.y = (deltaV2 * edge1[1] - deltaV1 * edge2[1]) * denominator;
+	tangent.z = (deltaV2 * edge1[2] - deltaV1 * edge2[2]) * denominator;
+
+	binormal.x = (deltaU1 * edge2[0] - deltaU2 * edge1[0]) * denominator;
+	binormal.y = (deltaU1 * edge2[1] - deltaU2 * edge1[1]) * denominator;
+	binormal.z = (deltaU1 * edge2[2] - deltaU2 * edge1[2]) * denominator;
+
+	length = sqrtf(tangent.x * tangent.x + tangent.y * tangent.y + tangent.z * tangent.z);
+	tangent.x /= length;
+	tangent.y /= length;
+	tangent.z /= length;
+
+	length = sqrtf(binormal.x * binormal.x + binormal.y * binormal.y + binormal.z * binormal.z);
+	binormal.x /= length;
+	binormal.y /= length;
+	binormal.z /= length;
+
+	v0.tangent = v1.tangent = v2.tangent = tangent;
+	v0.binormal = v1.binormal = v2.binormal = binormal;
 }
 
 void Model::ReleaseTexture()

@@ -565,6 +565,8 @@ bool SceneAlpha::Render(float frameTime)
 	m_context->TurnZBufferOn();
 
 	m_context->EndScene();
+
+	return true;
 }
 /// </Scene Alpha>
 
@@ -580,6 +582,9 @@ SceneBeta::SceneBeta()
 	m_textIndex = -1;
 	m_FPS = nullptr;
 	m_FPSTextIndex = -1;
+	m_quadMesh = nullptr;
+	m_normalMapShader = nullptr;
+	m_light = nullptr;
 }
 
 bool SceneBeta::Initialize(int width, int height, HWND hwnd, D3DContext* context)
@@ -647,14 +652,67 @@ bool SceneBeta::Initialize(int width, int height, HWND hwnd, D3DContext* context
 	{
 		return false;
 	}
-
 	m_FPS->Initialize();
+
+	// Normal map Quad
+	m_quadMesh = new QuadMesh{};
+	if (!m_quadMesh)
+	{
+		return false;
+	}
+	// Ignore the thrid texture
+	result = m_quadMesh->Initialize(context->GetDevice(), context->GetDeviceContext(), "Textures/StoneWall.jpg", "Textures/StoneNormal.jpg", "Textures/Alpha.jpg");
+	if (!result)
+	{
+		MessageBox(hwnd, "Could not initialize quad mesh object.", "Error", MB_OK);
+		return false;
+	}
+	// directional light
+	m_light = new Light{};
+	if (!m_light)
+	{
+		return false;
+	}
+	m_light->SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
+	m_light->SetDirection(-0.3f, 0.5f, -1.0f);
+	// normal map shader
+	m_normalMapShader = new NormalMapShader{};
+	if (!m_normalMapShader)
+	{
+		return false;
+	}
+	result = m_normalMapShader->Initialize(context->GetDevice(), hwnd, "Shaders/NormalMap.vs", "Shaders/NormalMap.ps");
+	if (!result)
+	{
+		MessageBox(hwnd, "Could not initialize normal map shader.", "Error", MB_OK);
+		return false;
+	}
+
 
 	return true;
 }
 
 void SceneBeta::Shutdown()
 {
+	if (m_light)
+	{
+		delete m_light;
+		m_light = 0;
+	}
+
+	if (m_normalMapShader)
+	{
+		m_normalMapShader->Shutdown();
+		delete m_normalMapShader;
+		m_normalMapShader = 0;
+	}
+
+	if (m_quadMesh)
+	{
+		m_quadMesh->Shutdown();
+		delete m_quadMesh;
+		m_quadMesh = nullptr;
+	}
 
 	if (m_FPS)
 	{
@@ -698,6 +756,7 @@ void SceneBeta::Frame(float frameTime)
 bool SceneBeta::Render(float frameTime)
 {
 	XMMATRIX worldMatrix, viewMatrix, projectionMatrix, orthoMatrix, baseViewMatrix;
+	XMMATRIX scaleMatrix, rotateMatrix, translateMatrix;
 	bool result;
 
 	// Begin
@@ -708,6 +767,19 @@ bool SceneBeta::Render(float frameTime)
 	m_context->GetProjectionMatrix(projectionMatrix);
 	m_context->GetOrthoMatrix(orthoMatrix);
 	m_camera->GetBaseViewMatrix(baseViewMatrix);
+
+	scaleMatrix = XMMatrixScaling(1.0f, 1.0f, 1.0f);
+	rotateMatrix = XMMatrixRotationY(XM_PI);
+	translateMatrix = XMMatrixTranslation(0.0f, 0.0f, 0.0f);
+	worldMatrix = scaleMatrix * rotateMatrix * translateMatrix;
+
+	m_quadMesh->Render(m_context->GetDeviceContext());
+
+	result = m_normalMapShader->Render(m_context->GetDeviceContext(), m_quadMesh->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_quadMesh->GetTextureA(), m_quadMesh->GetTextureB(), m_light->GetDirection(), m_light->GetDiffuseColor());
+	if (!result)
+	{
+		return false;
+	}
 
 	// turn off Z-Buffer for UI rendering
 	m_context->TurnZBufferOff();
@@ -745,7 +817,6 @@ bool SceneBeta::Render(float frameTime)
 	// Turn back the depth test
 	m_context->TurnZBufferOn();
 	m_context->EndScene();
-
 
 	return true;
 }

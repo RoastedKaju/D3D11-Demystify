@@ -22,6 +22,7 @@
 #include "MultiTextureTriangle.hpp"
 #include "AlphaMapShader.hpp"
 #include "QuadMesh.hpp"
+#include "NormalMapShader.hpp"
 
 class Scene
 {
@@ -104,5 +105,10 @@ private:
 	int m_textIndex;
 	FPS* m_FPS;
 	int m_FPSTextIndex;
+	// quad mesh
+	QuadMesh* m_quadMesh;
+	NormalMapShader* m_normalMapShader;
+	Light* m_light;
+
 };
 

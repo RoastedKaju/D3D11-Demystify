@@ -27,9 +27,11 @@ public:
 private:
 	struct VertexType
 	{
-		DirectX::XMFLOAT3 position;
-		DirectX::XMFLOAT2 texture;
-		DirectX::XMFLOAT3 normal;
+		XMFLOAT3 position;
+		XMFLOAT2 texture;
+		XMFLOAT3 normal;
+		XMFLOAT3 tangent;
+		XMFLOAT3 binormal;
 	};
 
 	bool InitializeBuffers(ID3D11Device*);

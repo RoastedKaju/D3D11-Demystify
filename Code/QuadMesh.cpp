@@ -105,21 +105,29 @@ bool QuadMesh::InitializeBuffers(ID3D11Device* device)
 	vertices[0].position = DirectX::XMFLOAT3(-1.0f, 1.0f, 0.0f);
 	vertices[0].texture = DirectX::XMFLOAT2(0.0f, 0.0f);
 	vertices[0].normal = DirectX::XMFLOAT3(0.0f, 0.0f, -1.0f);
+	vertices[0].tangent = DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f);
+	vertices[0].binormal = DirectX::XMFLOAT3(0.0f, -1.0f, 0.0f);
 
 	// Top-right vertex
 	vertices[1].position = DirectX::XMFLOAT3(1.0f, 1.0f, 0.0f);
 	vertices[1].texture = DirectX::XMFLOAT2(1.0f, 0.0f);
 	vertices[1].normal = DirectX::XMFLOAT3(0.0f, 0.0f, -1.0f);
+	vertices[1].tangent = DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f);
+	vertices[1].binormal = DirectX::XMFLOAT3(0.0f, -1.0f, 0.0f);
 
 	// Bottom-left vertex
 	vertices[2].position = DirectX::XMFLOAT3(-1.0f, -1.0f, 0.0f);
 	vertices[2].texture = DirectX::XMFLOAT2(0.0f, 1.0f);
 	vertices[2].normal = DirectX::XMFLOAT3(0.0f, 0.0f, -1.0f);
+	vertices[2].tangent = DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f);
+	vertices[2].binormal = DirectX::XMFLOAT3(0.0f, -1.0f, 0.0f);
 
 	// Bottom-right vertex
 	vertices[3].position = DirectX::XMFLOAT3(1.0f, -1.0f, 0.0f);
 	vertices[3].texture = DirectX::XMFLOAT2(1.0f, 1.0f);
 	vertices[3].normal = DirectX::XMFLOAT3(0.0f, 0.0f, -1.0f);
+	vertices[3].tangent = DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f);
+	vertices[3].binormal = DirectX::XMFLOAT3(0.0f, -1.0f, 0.0f);
 
 	// Indices (two triangles forming a quad)
 	indices[0] = 0; indices[1] = 2; indices[2] = 1; // First triangle
