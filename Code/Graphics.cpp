@@ -30,7 +30,7 @@ bool Graphics::Initialize(int width, int height, HWND hwnd)
 		return false;
 	}
 
-	m_scene = new SceneBeta{};
+	m_scene = new SceneAlpha{};
 	if (!m_scene)
 	{
 		return false;
